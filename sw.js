@@ -1,4 +1,8 @@
-// Minimal service worker: no caching, so every reload gets the newest version.
+// Always fetch the page fresh from the network (no browser cache), so a reload shows the newest version.
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
-self.addEventListener('fetch',()=>{});
+self.addEventListener('fetch',e=>{
+  if(e.request.mode==='navigate'){
+    e.respondWith(fetch(e.request.url,{cache:'no-store'}).catch(()=>fetch(e.request)));
+  }
+});
