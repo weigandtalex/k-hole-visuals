@@ -225,7 +225,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 10.10 17:40</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 10.10 18:02</div>
   </div>
 </div>
 
@@ -480,15 +480,15 @@ const rate=(d)=>({k:'rate',n:'Ритм',min:0,max:9,v:d,f:fRate,r:[1,8]});
 const shape=(d)=>({k:'shape',n:'Форма',min:0,max:18,v:d+9,f:fShape});
 const size=(d)=>({k:'size',n:'Масштаб',min:3,max:100,v:d,f:fPct,r:[6,70]});
 const DEV=[
- {id:'ca',name:'Каскады',max:10,p:[{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'step',n:'Шаг старта',min:0,max:12,v:12,f:v=>v<=0?'синхр':v>=12?'поровну':RATES[v-1],r:[1,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'lkey',n:'Проз.ярк',min:-100,max:100,v:0,step:5,f:v=>v===0?'0':v<0?'▼ '+(-v)+'%':'▲ '+v+'%',r:[-60,60],only:'ca'},{k:'lsoft',n:'Смягч.',min:0,max:100,v:15,step:5,f:fPct,r:[0,60],only:'ca'},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
+ {id:'ca',name:'Каскады',max:10,p:[{k:'step',n:'Шаг старта',min:0,max:12,v:12,f:v=>v<=0?'синхр':v>=12?'поровну':RATES[v-1],r:[1,8]},{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'lkey',n:'Проз.ярк',min:-100,max:100,v:0,step:5,f:v=>v===0?'0':v<0?'▼ '+(-v)+'%':'▲ '+v+'%',r:[-60,60],only:'ca'},{k:'lsoft',n:'Смягч.',min:0,max:100,v:15,step:5,f:fPct,r:[0,60],only:'ca'},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
 ];
 const TABS=[['ca','Каскады'],['sh','Сдвиги'],['fr','Заморозка']];let TAB='ca';
 const S={},ALL=[],SLOT=[],CELL=[];
 let ON=[true,false,false,false,false,false,false,false],MAN=Array(8).fill(null),RND=false,sel=-1,ACT=ON.slice(),CURV={},CURR={},CURC=[],CURCR=[],CURCD=[],CURPOLY=[],CJ=-1,CURD={sh:true,sw:true,ca:true,fr:true};
-const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1};let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
+const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1,ca_out:1};let TNOW=0,BARG=2;let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
 function defState(kind){const v={},r={},c={},cr={},d={};ALL.forEach(o=>{if(o.spec.g)return;if(PCK[o.id]){c[o.id]=eff(o.spec,kind).v;cr[o.id]=!!o.spec.rd;}else{v[o.id]=o.spec.v;r[o.id]=!!o.spec.rd;}});
   c.ca_fin=50;c.ca_fout=0;let D0={};
-  if(kind==='ca'){v.ca_out=9;v.plays=0;c.ca_decay=10;c.ca_clip=25;c.ca_clips=10;c.ca_sizerev=2;c.ca_faderev=2;['ca_shape','ca_size','ca_cnt','ca_rate','ca_shift','ca_drift','ca_edge','ca_fade'].forEach(k=>cr[k]=true);
+  if(kind==='ca'){c.ca_out=9;c.plays=0;c.ca_decay=10;c.ca_clip=25;c.ca_clips=10;c.ca_sizerev=2;c.ca_faderev=2;['ca_shape','ca_size','ca_cnt','ca_rate','ca_shift','ca_drift','ca_edge','ca_fade'].forEach(k=>cr[k]=true);
     D0={ca_size:[30,70],ca_rate:[1,5],ca_shift:[1,30],ca_drift:[1,50],ca_edge:[5,40],ca_fade:[0,50]};}
   const cv=[],crs=[],cds=[];for(let i=0;i<8;i++){cv.push(Object.assign({},c));crs.push(Object.assign({},cr));cds.push(JSON.parse(JSON.stringify(D0)));}
   return {v,r,d,cv,cr:crs,cd:cds,ce:0,poly:Array(8).fill(null),ON:[true,false,false,false,false,false,false,false],MAN:Array(8).fill(null),RND:false};}
@@ -508,7 +508,8 @@ function slotUI(){const ce=SRC[ED]?SRC[ED].st.ce:0;sel=MAN[ce]?ce:-1;markOff=fal
   if(SLOT.head)SLOT.head.textContent='Каскад '+(ce+1)+(ON[ce]?'':' · выключен')+(MAN[ce]?' · место вручную: ткни в картинку':'');}
 function commit(o){if(!o.spec.g&&SRC[ED]){vOf(SRC[ED].st,o.id)[o.id]=+o.el.value;SRC[ED].mdirty=true;if(o.id==='ca_shape')polySync(true);}}
 const PLN=[0,1,2,4,8];function plEff(v){const o=v.ca_out,bars=o>=100?secOf(o)/(240/bpm()):BARS[o],mx=bars/2+1e-6;let p=v.plays||0;while(p>0&&PLN[p]>mx)p--;return p;}
-function plUI(out){const s=SRC[ED],p=s?plEff(s.st.v):0;out.dataset.n=p?'×'+PLN[p]:'';}
+const plOf=st=>{const c=st.cv[st.ce];return {ca_out:c.ca_out===undefined?(st.v.ca_out===undefined?6:st.v.ca_out):c.ca_out,plays:c.plays===undefined?(st.v.plays||0):c.plays};};
+function plUI(out){const s=SRC[ED],p=s?plEff(plOf(s.st)):0;out.dataset.n=p?'×'+PLN[p]:'';}
 const REVK={ca_size:'ca_sizerev',ca_fade:'ca_faderev'};const revOf=(j,key,salt)=>{const m=+CURC[j][key]||0;return m===2?rnd((RSEED||1)^salt)()<.5:m===1;};function dcUI(out,id){const s=SRC[ED];if(!s){out.dataset.rev='0';return;}const st=s.st,c=st.cv[st.ce];out.dataset.rev=TAB!=='ca'?'x':String(+c[REVK[id]]||0);}
 function addSlider(parent,id,spec){if(spec.sh)spec.sh=Object.assign({},spec,spec.sh,{sh:null});const E=()=>eff(spec,TAB);
   const row=document.createElement('div');row.className='sl';
@@ -525,7 +526,7 @@ function addSlider(parent,id,spec){if(spec.sh)spec.sh=Object.assign({},spec,spec
   o.show=()=>{out.classList.remove('two');out.textContent=E().f(+el.value);if(id==='ca_out')plUI(out);if(REVK[id])dcUI(out,id);if(o.needle)o.needle.style.transform='rotate('+el.value+'deg)';};o.show();
   const fire=()=>{o.show();commit(o);if(REVK[id])dcUI(out,id);dirty=6;if(spec.g)resize();};
   if(REVK[id]){out.classList.add('pb','dc');out.setAttribute('role','button');out.tabIndex=0;out.title='Реверс';out.addEventListener('click',()=>{const s=SRC[ED];if(!s)return;const c=s.st.cv[s.st.ce];c[REVK[id]]=((+c[REVK[id]]||0)+1)%3;dcUI(out,id);dirty=6;});}
-  if(id==='ca_out'){out.classList.add('pb');out.setAttribute('role','button');out.tabIndex=0;out.title='Сколько раз проиграть за период';out.addEventListener('click',()=>{const s=SRC[ED];if(!s)return;const v=s.st.v;v.plays=(plEff(v)+1)%5;if(plEff(v)!==v.plays)v.plays=0;plUI(out);dirty=6;});}
+  if(id==='ca_out'){out.classList.add('pb');out.setAttribute('role','button');out.tabIndex=0;out.title='Сколько раз проиграть за период';out.addEventListener('click',()=>{const s=SRC[ED];if(!s)return;const c=s.st.cv[s.st.ce],o=plOf(s.st);o.plays=(plEff(o)+1)%5;if(plEff(o)!==o.plays)o.plays=0;c.plays=o.plays;plUI(out);dirty=6;});}
   el.addEventListener('input',fire);
   const step=d=>{const rg=curRange();
     if(rg){if(o.act==='lo')rg[0]=Math.min(rg[1],Math.max(+el.min,rg[0]+d));else rg[1]=Math.max(rg[0],Math.min(isRate||spec.sh?+el.max:rngMax,rg[1]+d));rUI();dirty=6;return;}
@@ -670,6 +671,9 @@ DEV[0].p.forEach(sp=>addSlider(dbox,'ca_'+sp.k,sp));{const bx=document.createEle
 // A unit's R-marked settings are re-rolled only when that unit takes a new place (its "Ритм мест" step), never mid-run.
 let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25,ca_lkey:26,ca_lsoft:27};
 const val=id=>{if(CJ>=0&&PCK[id]){
+    if(id==='ca_out'){const x=CURC[CJ].ca_out,base=x===undefined?(CURV.ca_out===undefined?6:CURV.ca_out):x;
+      if(CURCR[CJ].ca_out){const sp=S[id].spec,rg=CURCD[CJ].ca_out||sp.r,lo=rg[0],hi=rg[1];return lo+Math.floor(rnd(Math.imul(Math.floor(TNOW/(16*BARG))+1,0x2C1B3C6D)^Math.imul(CJ+1,40503)^Math.imul(CURI+1,0x9E3779B1))()*(hi-lo+1));}
+      return base;}
     if(RSEED&&PIDX[id]&&CURCR[CJ][id]){const sp=eff(S[id].spec,KIND),rg=CURCD[CJ][id]||dflR(sp,CURC[CJ][id]),lo=rg[0],hi=rg[1];return lo+Math.floor(rnd(RSEED^Math.imul(PIDX[id],0x85EBCA6B))()*(hi-lo+1));}
     const x=CURC[CJ][id];return x===undefined?eff(S[id].spec,KIND).v:x;}
   return (id in CURV)?CURV[id]:+S[id].el.value;};
@@ -756,20 +760,21 @@ function box(){const z=1-val('pad')/100,ca=W/H,ma=asp(SRC[MAIN]);SX=(ma>ca?1:ca/
 function rulesBegin(){[caR,caP,caQ,caS,caH,caU,caF,caK,frR,frA].forEach(a=>a.fill(0));}
 function rules(t,kind){KIND=kind;
   const PW=W/SX,PH=H/SY,bar=240/bpm(),base=kind==='sh'?8:0,di=kind==='ca'?0:kind==='sh'?1:2,ks=kind==='ca'?.9:1;
-  CJ=-1;const perOf=v=>v>=100?1/hzOf(v):BARS[v]*bar,Pout=perOf(val('ca_out'));
+  TNOW=t;BARG=bar;const perOf=v=>v>=100?1/hzOf(v):BARS[v]*bar;CJ=Math.max(0,ON.indexOf(true));const PoutG=perOf(val('ca_out'));CJ=-1;
   ACT=ON.slice();
   if(RND){const en=[];ON.forEach((v,i)=>{if(v)en.push(i);});
-    if(en.length>1){const r=rnd(Math.imul(Math.floor(t/Pout)+1,7919)^Math.imul(CURI+1,0x9E3779B1)^Math.imul(di+1,97531));const c=1+Math.floor(r()*en.length);
+    if(en.length>1){const r=rnd(Math.imul(Math.floor(t/PoutG)+1,7919)^Math.imul(CURI+1,0x9E3779B1)^Math.imul(di+1,97531));const c=1+Math.floor(r()*en.length);
       for(let i=en.length-1;i>0;i--){const q=Math.floor(r()*(i+1));[en[i],en[q]]=[en[q],en[i]];}
       ACT=ACT.map(()=>false);en.slice(0,c).forEach(i=>ACT[i]=true);}}
   let na=0;for(let q=0;q<8;q++)if(ACT[q]&&!MAN[q])na++;
   for(let j=0;j<8;j++){
     if(!ACT[j])continue;CJ=j;
+    const ov=val('ca_out'),Pout=perOf(ov),plj=plEff({ca_out:ov,plays:CURC[j].plays===undefined?CURV.plays:CURC[j].plays});
     const mp=MAN[j];let sk=Math.floor(t/Pout),pr=0,ja=0,tl=-1;
     for(let q=0;q<j;q++)if(ACT[q]&&!MAN[q])ja++;
-    let PoX=na*Pout,PcM=Pout;
+    let PoX=Pout,PcM=Pout;
     if(kind==='sh'){RSEED=0;const Tn=Math.min(8,Math.max(1,val('ca_cnt')))*Math.max(1,Math.min(8,val('ca_shift')))*perOf(val('ca_rate')),kk=Math.max(1,Math.ceil(Tn/Pout-1e-6));PcM=kk*Pout;PoX=Math.max(PoX,PcM);sk=Math.floor(t/PcM);}
-    if(PLN[plEff(CURV)]>0)PoX=PcM;
+    if(PLN[plj]>0)PoX=PcM;
     let ia=0,nA=0;for(let q=0;q<8;q++)if(ACT[q]){if(q<j)ia++;nA++;}
     const stv=CURV.ca_step===undefined?12:CURV.ca_step,offOf=PP=>stv<=0?0:stv>=12?ia*PP/Math.max(1,nA):ia*BARS[stv-1]*bar;
     const tm=t-offOf(PcM);if(mp)sk=Math.floor(tm/PcM);
@@ -780,7 +785,7 @@ function rules(t,kind){KIND=kind;
     const P=perOf(val('ca_rate')),L=Math.max(3,Math.abs(sv))/100*Math.max(PW,PH),ra=SHR[val('ca_shape')]||1;let wp=ra>=1?L:L*ra,hp=ra>=1?L/ra:L;
     const fitK=Math.min(1,PW/wp,PH/hp);wp*=fitK;hp*=fitK;const w=wp/PW,h=hp/PH;
     const c=val('ca_cnt'),cN=kind==='sh'?c:CNTS[Math.max(0,Math.min(4,c))];
-    const npl=PLN[plEff(CURV)],slot=npl?Pc/npl:Pc,ts=npl?tlc-Math.floor(tlc/slot+1e-9)*slot:tlc;
+    const npl=PLN[plj],slot=npl?Pc/npl:Pc,ts=npl?tlc-Math.floor(tlc/slot+1e-9)*slot:tlc;
     const dvv=kind==='ca'?Math.max(0,Math.min(40,val('ca_decay')||0)):0,drev=false,dcv=dvv?(drev?1:-1):0,DC=dvv?cN*P*20/dvv:0;let dg=0,bOn=true;
     let cfr=1;const frc=x=>{const q=x/P;return q-Math.floor(q);};
     let cc;if(npl){bOn=ts<cN*P;cc=Math.min(cN,Math.floor(ts/P+1e-6)+1);if(bOn)cfr=frc(ts);if(DC>0)dg=(ts-cN*P)/DC;}
