@@ -421,8 +421,14 @@ async function camTo(i,flip){
 
   const cur=SRC[i];mkState(o,cur||KEEP[i]);o.active=true;o.name='камера';if(cur&&cur.kind!=='demo'){KEEP[i]=null;}freeSrc(cur);SRC[i]=o;
   if(SRC[MAIN]&&SRC[MAIN].kind==='demo'&&MAIN!==i)SRC[MAIN]=null;
-  if(!SRC[MAIN])MAIN=i;
-  ED=MAIN;note('');loadPanel();resize(true);}
+  MAIN=ED=i;note('');loadPanel();resize(true);}
+// An empty cell can be the main picture too: a black frame the other pictures' fractals appear on.
+function makeBlank(i){const m=SRC[MAIN],a=m&&m.w&&m.h?m.w/m.h:.75,w=a>=1?1280:Math.round(1280*a),h=a>=1?Math.round(1280/a):1280;
+  const c=document.createElement('canvas');c.width=Math.max(2,w);c.height=Math.max(2,h);const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);
+  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);texParams();upload(c,tex);
+  const o={kind:'img',el:c,w:c.width,h:c.height,tex,thumb:'',blank:true};mkState(o,KEEP[i]);o.active=true;o.name='чёрный';SRC[i]=o;
+  if(SRC[MAIN]&&SRC[MAIN].kind==='demo'&&MAIN!==i)SRC[MAIN]=null;
+  MAIN=ED=i;note('');loadPanel();resize(true);}
 const fileEl=$('file');
 fileEl.parentElement.addEventListener('click',e=>{if(e.target!==fileEl)pending=-1;});
 fileEl.addEventListener('change',e=>{
@@ -672,8 +678,8 @@ for(let i=0;i<8;i++){
   const th=document.createElement('span');th.className='th';b.append(th);
   const n=document.createElement('button');n.type='button';n.className='n';n.id='act'+i;n.textContent=i+1;
   const x=document.createElement('button');x.type='button';x.className='x';x.id='del'+i;x.textContent='×';x.setAttribute('aria-label','Убрать картинку '+(i+1));
-  b.addEventListener('click',()=>{if(!SRC[i]||SRC[i].kind==='demo'){pending=i;fileEl.click();}else{MAIN=ED=i;loadPanel();resize(true);}});
-  n.addEventListener('click',()=>{const s=SRC[i];if(!s){pending=i;fileEl.click();return;}s.active=!s.active;srcUI();resize(true);});
+  b.addEventListener('click',()=>{if(!SRC[i]||SRC[i].kind==='demo'||SRC[i].blank){pending=i;fileEl.click();}else{MAIN=ED=i;loadPanel();resize(true);}});
+  n.addEventListener('click',()=>{const s=SRC[i];if(!s){makeBlank(i);return;}if(s.blank&&i!==MAIN){MAIN=ED=i;loadPanel();resize(true);return;}if(s.blank){removeSrc(i);return;}s.active=!s.active;srcUI();resize(true);});
   x.addEventListener('click',()=>{const s=SRC[i];if(s&&s.cam)clipTog(i);else removeSrc(i);});
   const k=document.createElement('button');k.type='button';k.className='cam';k.id='cam'+i;k.textContent='◉';k.addEventListener('click',()=>camTo(i));
   const fl=document.createElement('button');fl.type='button';fl.className='flip';fl.id='flip'+i;fl.textContent='⇄';fl.setAttribute('aria-label','Переключить камеру: передняя / задняя');fl.addEventListener('click',()=>camTo(i,true));
@@ -681,10 +687,10 @@ for(let i=0;i<8;i++){
 }
 function srcUI(){CELL.forEach((c,i)=>{const s=SRC[i],live=!!s&&(i===MAIN||s.active);
   c.c.className='src'+(s?' has':'')+(i===MAIN&&s?' main':'')+(s&&!live?' idle':'');
-  c.th.style.backgroundImage=s&&s.thumb?'url('+s.thumb+')':'none';c.th.textContent=!s?'+':s.kind==='demo'?'+':'';c.th.classList.toggle('plus',!s||s.kind==='demo');
+  c.th.style.backgroundImage=s&&s.thumb?'url('+s.thumb+')':'none';c.th.textContent=!s||s.kind==='demo'||s.blank?'+':'';c.th.classList.toggle('plus',!s||s.kind==='demo'||!!s.blank);
   c.n.className='n'+(live?' on':'');c.n.setAttribute('aria-pressed',live);
   c.n.setAttribute('aria-label','Картинка '+(i+1)+(!s?': пусто':live?': используется':': не используется'));
-  c.x.hidden=!s||s.kind==='demo';{const live=!!(s&&s.cam),rc=live&&s.rec&&s.rec.state!=='inactive';c.x.textContent=live?'●':'×';c.x.classList.toggle('clip',live);c.x.classList.toggle('rec',!!rc);c.x.setAttribute('aria-label',live?(rc?'Закончить клип и оставить его в ячейке':'Снять клип с камеры в эту ячейку'):'Убрать картинку '+(i+1));}c.k.hidden=!!s&&s.kind!=='demo'&&!s.cam;c.k.classList.toggle('live',!!(s&&s.cam));c.k.textContent=s&&s.cam?'■':'◉';c.k.setAttribute('aria-label',s&&s.cam?'Выключить камеру':'Камера в ячейку '+(i+1));c.fl.hidden=!(s&&s.cam);
+  c.x.hidden=!s||s.kind==='demo';{const live=!!(s&&s.cam),rc=live&&s.rec&&s.rec.state!=='inactive';c.x.textContent=live?'●':'×';c.x.classList.toggle('clip',live);c.x.classList.toggle('rec',!!rc);c.x.setAttribute('aria-label',live?(rc?'Закончить клип и оставить его в ячейке':'Снять клип с камеры в эту ячейку'):'Убрать картинку '+(i+1));}c.k.hidden=!!s&&s.kind!=='demo'&&!s.cam&&!s.blank;c.k.classList.toggle('live',!!(s&&s.cam));c.k.textContent=s&&s.cam?'■':'◉';c.k.setAttribute('aria-label',s&&s.cam?'Выключить камеру':'Камера в ячейку '+(i+1));c.fl.hidden=!(s&&s.cam);
   c.b.setAttribute('aria-label',!s?'Загрузить файл в ячейку '+(i+1):'Сделать картинку '+(i+1)+' главной');});
   {const m=SRC[MAIN];$('srchead').textContent=!m?'':m.kind==='demo'?'демо-сцена':(m.name||'картинка '+(MAIN+1));$('srchead').title=$('srchead').textContent;}
   panelEl.style.setProperty('--c','var(--s'+ED+')');}
