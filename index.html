@@ -225,7 +225,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 10.10 17:09</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 10.10 17:17</div>
   </div>
 </div>
 
@@ -282,7 +282,7 @@ void main(){
 // Rule layer: axis-aligned rectangles only. Each picture runs its own pass: its pieces are cut from it and laid over what is already drawn.
 const FB=`precision highp float;
 uniform vec2 uRes,uFit,uZ;uniform sampler2D uS,uP,uB,uM;
-uniform vec4 uCaR[16],uCaP[16],uCaQ[16],uCaS[16],uCaH[16],uCaU[16],uCaF[16],uFrR[8],uFrA[8];
+uniform vec4 uCaR[16],uCaP[16],uCaQ[16],uCaS[16],uCaH[16],uCaU[16],uCaF[16],uCaK[16],uFrR[8],uFrA[8];
 bool ins(vec2 q,vec4 r){vec2 d=q-r.xy;return d.x>=0.&&d.y>=0.&&d.x<r.z&&d.y<r.w;}
 vec3 pick(vec2 m){return (m.x<0.||m.y<0.||m.x>1.||m.y>1.)?vec3(0.):texture2D(uS,(m-.5)*uFit+.5).rgb;}
 void main(){
@@ -305,6 +305,7 @@ void main(){
         if(uCaU[c].w<0.)pc=min(pc*(1.+uCaU[c].z*float(k-1)),1.);
         if(uCaU[c].w<0.&&float(k)==abs(p.w)){pc=clamp(mix(vec3(dot(pc,vec3(.299,.587,.114))),pc,1.+uCaU[c].y),0.,1.);pc=min(pc*(1.+uCaU[c].x),1.);}
         if(uCaF[c].x>0.&&float(k)==uCaF[c].x){pc=clamp(mix(vec3(dot(pc,vec3(.299,.587,.114))),pc,1.+uCaF[c].z),0.,1.);pc=min(pc*(1.+uCaF[c].y),1.);}
+        float lk=uCaK[c].x;if(lk!=0.){float L0=dot(pick(cen+l*r.zw),vec3(.299,.587,.114)),T=abs(lk)*1.16-.08;a*=lk<0.?smoothstep(T-.08,T+.08,L0):1.-smoothstep(1.-T-.08,1.-T+.08,L0);}
         col=mix(col,pc,clamp(g.w+g.x*float(k),0.,1.)*clamp(1.+uCaS[c].w+hh.w*float(k),0.,1.)*a*uCaS[c].y);
       }
     }
@@ -329,7 +330,7 @@ function prog(fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHAD
 const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD);
 const U=(p,n)=>gl.getUniformLocation(p,n);
 const ua={res:U(PA,'uRes'),u:U(PA,'uU'),look:U(PA,'uLook')};
-const ub={res:U(PB,'uRes'),fit:U(PB,'uFit'),z:U(PB,'uZ'),s:U(PB,'uS'),p:U(PB,'uP'),b:U(PB,'uB'),m:U(PB,'uM'),caR:U(PB,'uCaR'),caP:U(PB,'uCaP'),caQ:U(PB,'uCaQ'),caS:U(PB,'uCaS'),caH:U(PB,'uCaH'),caF:U(PB,'uCaF'),caU:U(PB,'uCaU'),frR:U(PB,'uFrR'),frA:U(PB,'uFrA')};
+const ub={res:U(PB,'uRes'),fit:U(PB,'uFit'),z:U(PB,'uZ'),s:U(PB,'uS'),p:U(PB,'uP'),b:U(PB,'uB'),m:U(PB,'uM'),caR:U(PB,'uCaR'),caP:U(PB,'uCaP'),caQ:U(PB,'uCaQ'),caS:U(PB,'uCaS'),caH:U(PB,'uCaH'),caF:U(PB,'uCaF'),caK:U(PB,'uCaK'),caU:U(PB,'uCaU'),frR:U(PB,'uFrR'),frA:U(PB,'uFrA')};
 const uc={res:U(PC,'uRes'),tex:U(PC,'uTex')};
 const ud={res:U(PD,'uRes'),z:U(PD,'uZ'),s:U(PD,'uS'),fe:U(PD,'uFe')};
 const vbuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vbuf);
@@ -479,12 +480,12 @@ const rate=(d)=>({k:'rate',n:'Ритм',min:0,max:9,v:d,f:fRate,r:[1,8]});
 const shape=(d)=>({k:'shape',n:'Форма',min:0,max:18,v:d+9,f:fShape});
 const size=(d)=>({k:'size',n:'Масштаб',min:3,max:100,v:d,f:fPct,r:[6,70]});
 const DEV=[
- {id:'ca',name:'Каскады',max:10,p:[{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
+ {id:'ca',name:'Каскады',max:10,p:[{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'lkey',n:'Проз.ярк',min:-100,max:100,v:0,step:5,f:v=>v===0?'0':v<0?'▼ '+(-v)+'%':'▲ '+v+'%',r:[-60,60],only:'ca'},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
 ];
 const TABS=[['ca','Каскады'],['sh','Сдвиги'],['fr','Заморозка']];let TAB='ca';
 const S={},ALL=[],SLOT=[],CELL=[];
 let ON=[true,false,false,false,false,false,false,false],MAN=Array(8).fill(null),RND=false,sel=-1,ACT=ON.slice(),CURV={},CURR={},CURC=[],CURCR=[],CURCD=[],CURPOLY=[],CJ=-1,CURD={sh:true,sw:true,ca:true,fr:true};
-const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1};let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
+const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1};let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
 function defState(kind){const v={},r={},c={},cr={},d={};ALL.forEach(o=>{if(o.spec.g)return;if(PCK[o.id]){c[o.id]=eff(o.spec,kind).v;cr[o.id]=!!o.spec.rd;}else{v[o.id]=o.spec.v;r[o.id]=!!o.spec.rd;}});
   c.ca_fin=50;c.ca_fout=0;let D0={};
   if(kind==='ca'){v.ca_out=9;v.plays=0;c.ca_decay=10;c.ca_clip=25;c.ca_clips=10;c.ca_sizerev=2;c.ca_faderev=2;['ca_shape','ca_size','ca_cnt','ca_rate','ca_shift','ca_drift','ca_edge','ca_fade'].forEach(k=>cr[k]=true);
@@ -667,7 +668,7 @@ DEV[0].p.forEach(sp=>addSlider(dbox,'ca_'+sp.k,sp));{const bx=document.createEle
     sl.after(S.ca_dir.row);slotUI();
 }
 // A unit's R-marked settings are re-rolled only when that unit takes a new place (its "Ритм мест" step), never mid-run.
-let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25};
+let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25,ca_lkey:26};
 const val=id=>{if(CJ>=0&&PCK[id]){
     if(RSEED&&PIDX[id]&&CURCR[CJ][id]){const sp=eff(S[id].spec,KIND),rg=CURCD[CJ][id]||dflR(sp,CURC[CJ][id]),lo=rg[0],hi=rg[1];return lo+Math.floor(rnd(RSEED^Math.imul(PIDX[id],0x85EBCA6B))()*(hi-lo+1));}
     const x=CURC[CJ][id];return x===undefined?eff(S[id].spec,KIND).v:x;}
@@ -748,11 +749,11 @@ SRC[0]=mkState({kind:'demo',active:true});
 function rnd(seed){let a=seed>>>0;
   return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const A=n=>new Float32Array(n*4);
-const caF=A(16),caH=A(16),caU=A(16),caR=A(16),caP=A(16),caQ=A(16),caS=A(16),frR=A(8),frA=A(8);
+const caK=A(16),caF=A(16),caH=A(16),caU=A(16),caR=A(16),caP=A(16),caQ=A(16),caS=A(16),frR=A(8),frA=A(8);
 function bpm(){const v=+$('bpm').value;return Math.min(240,Math.max(40,v||120));}
 let SX=1,SY=1,CURI=0;
 function box(){const z=1-val('pad')/100,ca=W/H,ma=asp(SRC[MAIN]);SX=(ma>ca?1:ca/ma)/z;SY=(ma>ca?ma/ca:1)/z;}
-function rulesBegin(){[caR,caP,caQ,caS,caH,caU,caF,frR,frA].forEach(a=>a.fill(0));}
+function rulesBegin(){[caR,caP,caQ,caS,caH,caU,caF,caK,frR,frA].forEach(a=>a.fill(0));}
 function rules(t,kind){KIND=kind;
   const PW=W/SX,PH=H/SY,bar=240/bpm(),base=kind==='sh'?8:0,di=kind==='ca'?0:kind==='sh'?1:2,ks=kind==='ca'?.9:1;
   CJ=-1;const perOf=v=>v>=100?1/hzOf(v):BARS[v]*bar,Pout=perOf(val('ca_out'));
@@ -819,7 +820,7 @@ function rules(t,kind){KIND=kind;
     const dgr=CURCR[j].ca_dir?r()*360:val('ca_dir'),an=(90-dgr)*Math.PI/180,sx=Math.cos(an)*lp/PW,sy=Math.sin(an)*lp/PH,sft=shPct(val('ca_shift'))/100,o4=(base+j)*4;
     const dr=val('ca_drift')/100*pr,fv0=val('ca_fade'),fA=Math.abs(fv0)/100,fv=fv0>=0&&revOf(j,'ca_faderev',0x7FADE1)?fA:-fA,fa=cN>1?fA/(cN-1):0;
     caR.set([x,y,rw,rh],o4);caP.set([sx*sft,sy*sft,val('ca_edge')/100,cc*msk],o4);
-    caQ.set([fv<0?-fa:fa,-sx*dr,-sy*dr,fv<0?1+fa:1-fA-fa],o4);caS.set([ku,am,1+(val('ca_sat')||0)/100,dA],o4);caH.set([0,0,0,dB],o4);{const sm=kind==='ca'?(val('ca_smooth')||0)/100:0,e0=sm<=.01?1:Math.min(1,cfr/sm),ee=e0*e0*(3-2*e0);caF.set([0,0,0,ee-1],o4);}if(dg>0&&dg<1){const ix=Math.min(cN-1,Math.floor(dg*cN));caF.set([dcv<0?ix+1:cN-ix,(val('ca_dclip')||0)/100,(val('ca_dclips')||0)/100,caF[o4+3]],o4);}caU.set([bOn?(val('ca_clip')||0)/100:0,bOn?(val('ca_clips')||0)/100:0,(val('ca_gain')||0)/100,-1],o4);
+    caQ.set([fv<0?-fa:fa,-sx*dr,-sy*dr,fv<0?1+fa:1-fA-fa],o4);caS.set([ku,am,1+(val('ca_sat')||0)/100,dA],o4);caH.set([0,0,0,dB],o4);caK.set([kind==='ca'?(val('ca_lkey')||0)/100:0,0,0,0],o4);{const sm=kind==='ca'?(val('ca_smooth')||0)/100:0,e0=sm<=.01?1:Math.min(1,cfr/sm),ee=e0*e0*(3-2*e0);caF.set([0,0,0,ee-1],o4);}if(dg>0&&dg<1){const ix=Math.min(cN-1,Math.floor(dg*cN));caF.set([dcv<0?ix+1:cN-ix,(val('ca_dclip')||0)/100,(val('ca_dclips')||0)/100,caF[o4+3]],o4);}caU.set([bOn?(val('ca_clip')||0)/100:0,bOn?(val('ca_clips')||0)/100:0,(val('ca_gain')||0)/100,-1],o4);
   }
   CJ=-1;RSEED=0;
 }
@@ -935,7 +936,7 @@ function frame(now){
     gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texOf(s));
     const sa=asp(s);let fx=1,fy=1;if(sa>ma)fx=ma/sa;else fy=sa/ma;
     gl.uniform2f(ub.fit,fx,fy);gl.uniform2f(ub.z,SX,SY);
-    gl.uniform4fv(ub.caR,caR);gl.uniform4fv(ub.caP,caP);gl.uniform4fv(ub.caQ,caQ);gl.uniform4fv(ub.caS,caS);gl.uniform4fv(ub.caH,caH);gl.uniform4fv(ub.caF,caF);gl.uniform4fv(ub.caU,caU);gl.uniform4fv(ub.frR,frR);gl.uniform4fv(ub.frA,frA);
+    gl.uniform4fv(ub.caR,caR);gl.uniform4fv(ub.caP,caP);gl.uniform4fv(ub.caQ,caQ);gl.uniform4fv(ub.caS,caS);gl.uniform4fv(ub.caH,caH);gl.uniform4fv(ub.caF,caF);gl.uniform4fv(ub.caK,caK);gl.uniform4fv(ub.caU,caU);gl.uniform4fv(ub.frR,frR);gl.uniform4fv(ub.frA,frA);
     gl.drawArrays(gl.TRIANGLES,0,3);
     const x=ai;ai=ni;ni=x;});
   bind(SRC[ED].st);if(skipFr>0)skipFr--;
