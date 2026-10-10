@@ -115,7 +115,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .src .th.plus{left:34px;font-size:26px;color:var(--ice)}
 .src .cam{position:absolute;left:0;top:33px;bottom:0;width:34px;height:auto;padding:0;text-align:center;font-size:15px;letter-spacing:0;background:var(--rack);color:var(--ice)}
 .src .cam.live{color:var(--red);animation:camb 1s steps(2) infinite}@keyframes camb{50%{opacity:.35}}
-.src .flip{position:absolute;right:0;bottom:0;width:34px;height:32px;padding:0;text-align:center;font-size:14px;letter-spacing:0;background:var(--rack);color:var(--ice)}
+.src .flip{position:absolute;right:0;bottom:0;width:38px;height:34px;padding:0;text-align:center;font-size:18px;font-weight:700;letter-spacing:0;background:var(--rack);color:var(--ice)}
 #rec{color:var(--red);font-weight:700;padding:9px 8px}#rec[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--void)}
 .src .x{right:0}
 .src .n.on{background:var(--k);border-color:var(--k);color:var(--void);font-weight:500}
@@ -400,7 +400,9 @@ async function camTo(i,flip){
   const old=SRC[i];if(old&&old.cam&&!flip){camStop(i);return;}
   const face=old&&old.cam?(old.face==='environment'?'user':'environment'):'environment';
   note('включаю камеру…');let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:face},width:{ideal:1280},height:{ideal:720}},audio:false});}
+  if(old&&old.cam){if(old.recT)clearTimeout(old.recT);if(old.rec&&old.rec.state!=='inactive'){old.rec.onstop=()=>{};try{old.rec.stop();}catch(_){}}try{old.stream.getTracks().forEach(t=>t.stop());}catch(_){}await new Promise(r=>setTimeout(r,250));}
+  const gum=fm=>navigator.mediaDevices.getUserMedia({video:{facingMode:fm,width:{ideal:1280},height:{ideal:720}},audio:false});
+  try{try{stream=await gum({exact:face});}catch(e1){if(e1&&(e1.name==='NotAllowedError'||e1.name==='SecurityError'))throw e1;stream=await gum({ideal:face});}}
   catch(e){const n=e&&e.name||'';note(n==='NotAllowedError'||n==='SecurityError'?(location.protocol==='https:'?'Нет доступа к камере: разреши её для этой страницы в настройках браузера.':'Камера не работает из файла на телефоне: страницу нужно открыть по https-ссылке.'):n==='NotFoundError'?'Камера не найдена.':'Камера не открылась ('+(n||'ошибка')+').');return;}
   const v=document.createElement('video');v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.srcObject=stream;
   try{await v.play();}catch(_){}
