@@ -225,7 +225,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.01</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.02</div>
   </div>
 </div>
 
@@ -480,12 +480,12 @@ const rate=(d)=>({k:'rate',n:'Ритм',min:0,max:9,v:d,f:fRate,r:[1,8]});
 const shape=(d)=>({k:'shape',n:'Форма',min:0,max:18,v:d+9,f:fShape});
 const size=(d)=>({k:'size',n:'Масштаб',min:3,max:100,v:d,f:fPct,r:[6,70]});
 const DEV=[
- {id:'ca',name:'Каскады',max:10,p:[{k:'step',n:'Шаг старта',min:0,max:12,v:12,f:v=>v<=0?'синхр':v>=12?'поровну':RATES[v-1],r:[1,8]},{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'lkey',n:'Проз.ярк',min:-100,max:100,v:0,step:5,f:v=>v===0?'0':v<0?'▼ '+(-v)+'%':'▲ '+v+'%',r:[-60,60],only:'ca'},{k:'lsoft',n:'Смягч.',min:0,max:100,v:15,step:5,f:fPct,r:[0,60],only:'ca'},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
+ {id:'ca',name:'Каскады',max:10,p:[{k:'step',n:'Шаг старта',min:0,max:12,v:12,f:v=>v<=0?'синхр':v>=12?'поровну':RATES[v-1],r:[1,8]},{k:'out',n:'Ритм мест',min:0,max:10,v:6,f:fRate,r:[4,8]},{k:'decay',n:'Скорость',min:0,max:40,v:0,f:v=>v<=0?'нет':v*5+'%',r:[4,20],only:'ca'},{k:'dclip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'dclips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'light',n:'Свет',min:-100,max:100,v:0,step:5,f:v=>v===0?'нет':v>0?'☀ '+v+'%':'☾ '+(-v)+'%',r:[-40,40],only:'ca'},{k:'shape',n:'Форма',min:0,max:19,v:9,f:v=>v==19?'своя':SHN[v],r:[0,18]},{k:'size',n:'Масштаб',min:0,max:100,v:50,f:v=>Math.max(3,Math.abs(v))+'%',r:[10,70]},{k:'cnt',n:'Копии',min:0,max:4,v:0,f:v=>CNTS[v]||1,r:[1,4],sh:{n:'Ходы',min:1,max:8,v:2,f:v=>v,r:[1,5]}},{k:'fin',n:'In',min:0,max:250,v:50,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'fout',n:'Out',min:0,max:250,v:0,step:5,f:v=>(v/100).toFixed(2)+'с',r:[0,100]},{k:'rate',n:'Ритм внутри',min:0,max:10,v:6,f:fRate,r:[1,5],sh:{n:'Ритм хода',v:4,r:[2,6]}},{k:'shift',n:'Сдвиг',min:0,max:107,v:0,f:v=>shPct(v)+'%',r:[1,30],sh:{n:'Длина',min:1,max:8,v:1,f:v=>v+' кл',r:[1,4]}},{k:'smooth',n:'Плавн.',min:0,max:100,v:0,step:5,f:fPct,r:[0,100],only:'ca'},{k:'dir',n:'Направл.',min:0,max:359,v:0,f:v=>v+'°',dial:1,step:5,rd:1},{k:'drift',n:'Дрейф',min:0,max:50,v:0,f:fPct,sh:{n:'Плавн.',max:100,v:50,r:[0,100]}},{k:'axes',n:'Оси',min:0,max:3,v:2,f:v=>['Г','В','Г+В','своб.'][v],only:'sh'},{k:'rep',n:'Повтор',min:0,max:3,v:0,f:v=>['круг','↔','новый','дальше'][v],only:'sh'},{k:'pop',n:'Скачок',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'grow',n:'Рост',min:-50,max:50,v:0,f:v=>(v>0?'+':'')+v+'%',only:'sh'},{k:'door',n:'Ход',min:0,max:1,v:0,f:v=>['съезд','дверь'][v],only:'sh'},{k:'hole',n:'Дырка',min:0,max:2,v:1,f:v=>['нет','чёрная','затяг.'][v],only:'sh'},{k:'edge',n:'Размытие',min:0,max:40,v:0,f:fPct},{k:'fade',n:'Прозрачн.',min:0,max:100,v:0,f:v=>Math.abs(v)+'%',r:[0,50]},{k:'lkey',n:'Проз.ярк',min:-100,max:100,v:0,step:5,f:v=>v===0?'0':v<0?'▼ '+(-v)+'%':'▲ '+v+'%',r:[-60,60],only:'ca'},{k:'lsoft',n:'Смягч.',min:0,max:100,v:15,step:5,f:fPct,r:[0,60],only:'ca'},{k:'sat',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100]},{k:'clip',n:'Яркость',min:0,max:100,v:0,f:fPct,r:[0,40],only:'ca'},{k:'clips',n:'Насыщ.',min:-100,max:100,v:0,f:v=>(v>0?'+':'')+v+'%',r:[-100,100],only:'ca'},{k:'gain',n:'Усилен.',min:0,max:20,v:0,f:fPct,r:[0,10],only:'ca'}]},
 ];
 const TABS=[['ca','Каскады'],['sh','Сдвиги'],['fr','Заморозка']];let TAB='ca';
 const S={},ALL=[],SLOT=[],CELL=[];
 let ON=[true,false,false,false,false,false,false,false],MAN=Array(8).fill(null),RND=false,sel=-1,ACT=ON.slice(),CURV={},CURR={},CURC=[],CURCR=[],CURCD=[],CURPOLY=[],CJ=-1,CURD={sh:true,sw:true,ca:true,fr:true};
-const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1,ca_out:1};let TNOW=0,BARG=2;let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
+const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1,ca_out:1,ca_light:1};let TNOW=0,BARG=2;let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
 function defState(kind){const v={},r={},c={},cr={},d={};ALL.forEach(o=>{if(o.spec.g)return;if(PCK[o.id]){c[o.id]=eff(o.spec,kind).v;cr[o.id]=!!o.spec.rd;}else{v[o.id]=o.spec.v;r[o.id]=!!o.spec.rd;}});
   c.ca_fin=50;c.ca_fout=0;let D0={};
   if(kind==='ca'){c.ca_out=9;c.plays=0;c.ca_decay=10;c.ca_clip=25;c.ca_clips=10;c.ca_sizerev=2;c.ca_faderev=2;['ca_shape','ca_size','ca_cnt','ca_rate','ca_shift','ca_drift','ca_edge','ca_fade'].forEach(k=>cr[k]=true);
@@ -669,7 +669,7 @@ DEV[0].p.forEach(sp=>addSlider(dbox,'ca_'+sp.k,sp));{const bx=document.createEle
     sl.after(S.ca_dir.row);slotUI();
 }
 // A unit's R-marked settings are re-rolled only when that unit takes a new place (its "Ритм мест" step), never mid-run.
-let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25,ca_lkey:26,ca_lsoft:27};
+let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25,ca_lkey:26,ca_lsoft:27,ca_light:28};
 const val=id=>{if(CJ>=0&&PCK[id]){
     if(id==='ca_out'){const x=CURC[CJ].ca_out,base=x===undefined?(CURV.ca_out===undefined?6:CURV.ca_out):x;
       if(CURCR[CJ].ca_out){const sp=S[id].spec,rg=CURCD[CJ].ca_out||sp.r,lo=rg[0],hi=rg[1];return lo+Math.floor(rnd(Math.imul(Math.floor(TNOW/(16*BARG))+1,0x2C1B3C6D)^Math.imul(CJ+1,40503)^Math.imul(CURI+1,0x9E3779B1))()*(hi-lo+1));}
@@ -758,6 +758,17 @@ function bpm(){const v=+$('bpm').value;return Math.min(240,Math.max(40,v||120));
 let SX=1,SY=1,CURI=0;
 function box(){const z=1-val('pad')/100,ca=W/H,ma=asp(SRC[MAIN]);SX=(ma>ca?1:ca/ma)/z;SY=(ma>ca?ma/ca:1)/z;}
 function rulesBegin(){[caR,caP,caQ,caS,caH,caU,caF,caK,frR,frA].forEach(a=>a.fill(0));}
+// Brightness map of a picture: 32x32 luma cells (row 0 = top), refreshed for video and camera.
+const LG=32,lgCv=document.createElement('canvas');lgCv.width=lgCv.height=LG;const lgX=lgCv.getContext('2d',{willReadFrequently:true});const POSC={};
+function lumaOf(s){if(!s||s.kind==='demo'||!s.el)return null;const now=performance.now();
+  if(s.lg&&(s.kind==='img'||now-s.lgT<250))return s.lg;
+  try{lgX.drawImage(s.el,0,0,LG,LG);const d=lgX.getImageData(0,0,LG,LG).data,g=new Float32Array(LG*LG);
+    for(let i=0;i<LG*LG;i++)g[i]=(.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])/255;s.lg=g;s.lgT=now;}catch(_){return s.lg||null;}
+  return s.lg;}
+function lightPick(g,v,r){const lv=Math.abs(v)/100,hi=v>0,el=[];let tot=0,best=-1,bv=-1;
+  for(let i=0;i<g.length;i++){const L=g[i],m=hi?L-(1-lv):lv-L,ex=hi?L:1-L;if(ex>bv){bv=ex;best=i;}if(m>=0){const w=m+.02;el.push(i,w);tot+=w;}}
+  let pick=best;if(tot>0){let q=r*tot;for(let k=0;k<el.length;k+=2){q-=el[k+1];if(q<=0){pick=el[k];break;}}}
+  const cx=(pick%LG+.5)/LG,cy=1-(Math.floor(pick/LG)+.5)/LG;return [cx,cy];}
 function rules(t,kind){KIND=kind;
   const PW=W/SX,PH=H/SY,bar=240/bpm(),base=kind==='sh'?8:0,di=kind==='ca'?0:kind==='sh'?1:2,ks=kind==='ca'?.9:1;
   TNOW=t;BARG=bar;const perOf=v=>v>=100?1/hzOf(v):BARS[v]*bar;CJ=Math.max(0,ON.indexOf(true));const PoutG=perOf(val('ca_out'));CJ=-1;
@@ -795,7 +806,11 @@ function rules(t,kind){KIND=kind;
     const r=rnd(seed);
     let x,y,th=0;
     if(mp){x=Math.min(1-w,Math.max(0,mp.x-w/2));y=Math.min(1-h,Math.max(0,mp.y-h/2));}
-    else{th=6.2831853*((ja+.618*sk)/na+CURI*.137+di*.29)+(r()-.5)*2.2;const ro=.45+.55*r();x=(.5+.5*ro*Math.cos(th))*(1-w);y=(.5+.5*ro*Math.sin(th))*(1-h);}
+    else{th=6.2831853*((ja+.618*sk)/na+CURI*.137+di*.29)+(r()-.5)*2.2;const ro=.45+.55*r();x=(.5+.5*ro*Math.cos(th))*(1-w);y=(.5+.5*ro*Math.sin(th))*(1-h);
+      const lv=kind==='ca'?(val('ca_light')||0):0;
+      if(lv!==0){const key=CURI+'_'+kind+'_'+j,pc=POSC[key];let c=null;
+        if(pc&&pc.sk===sk&&pc.lv===lv)c=pc.c;else{const g=lumaOf(SRC[CURI]);if(g){c=lightPick(g,lv,r());POSC[key]={sk,lv,c};}}
+        if(c){x=Math.min(1-w,Math.max(0,c[0]-w/2));y=Math.min(1-h,Math.max(0,c[1]-h/2));}}}
     let rw=w,rh=h,lp=Math.max(wp,hp),msk=1;
     const pg=val('ca_shape')===19?CURPOLY[j]:null;
     if(pg&&pg.length>2){let x0=1,y0=1,x1=0,y1=0;pg.forEach(q=>{x0=Math.min(x0,q.x);y0=Math.min(y0,q.y);x1=Math.max(x1,q.x);y1=Math.max(y1,q.y);});
@@ -828,7 +843,7 @@ function rules(t,kind){KIND=kind;
     const dgr=CURCR[j].ca_dir?r()*360:val('ca_dir'),an=(90-dgr)*Math.PI/180,sx=Math.cos(an)*lp/PW,sy=Math.sin(an)*lp/PH,sft=shPct(val('ca_shift'))/100,o4=(base+j)*4;
     const dr=val('ca_drift')/100*pr,fv0=val('ca_fade'),fA=Math.abs(fv0)/100,fv=fv0>=0&&revOf(j,'ca_faderev',0x7FADE1)?fA:-fA,fa=cN>1?fA/(cN-1):0;
     caR.set([x,y,rw,rh],o4);caP.set([sx*sft,sy*sft,val('ca_edge')/100,cc*msk],o4);
-    caQ.set([fv<0?-fa:fa,-sx*dr,-sy*dr,fv<0?1+fa:1-fA-fa],o4);caS.set([ku,am,1+(val('ca_sat')||0)/100,dA],o4);caH.set([0,0,0,dB],o4);caK.set([kind==='ca'?(val('ca_lkey')||0)/100:0,(()=>{const q=val('ca_lsoft');return (q===undefined?15:q)/200;})(),0,0],o4);{const sm=kind==='ca'?(val('ca_smooth')||0)/100:0,e0=sm<=.01?1:Math.min(1,cfr/sm),ee=e0*e0*(3-2*e0);caF.set([0,0,0,ee-1],o4);}if(dg>0&&dg<1){const ix=Math.min(cN-1,Math.floor(dg*cN));caF.set([dcv<0?ix+1:cN-ix,(val('ca_dclip')||0)/100,(val('ca_dclips')||0)/100,caF[o4+3]],o4);}caU.set([bOn?(val('ca_clip')||0)/100:0,bOn?(val('ca_clips')||0)/100:0,(val('ca_gain')||0)/100,-1],o4);
+    caQ.set([fv<0?-fa:fa,-sx*dr,-sy*dr,fv<0?1+fa:1-fA-fa],o4);caS.set([ku,am,1+(val('ca_sat')||0)/100,dA],o4);caH.set([0,0,0,dB],o4);caK.set([kind==='ca'?((()=>{const lv=val('ca_light')||0;return lv>0?-(1-lv/100):lv<0?(1+lv/100):(val('ca_lkey')||0)/100;})()):0,(()=>{const q=val('ca_lsoft');return (q===undefined?15:q)/200;})(),0,0],o4);{const sm=kind==='ca'?(val('ca_smooth')||0)/100:0,e0=sm<=.01?1:Math.min(1,cfr/sm),ee=e0*e0*(3-2*e0);caF.set([0,0,0,ee-1],o4);}if(dg>0&&dg<1){const ix=Math.min(cN-1,Math.floor(dg*cN));caF.set([dcv<0?ix+1:cN-ix,(val('ca_dclip')||0)/100,(val('ca_dclips')||0)/100,caF[o4+3]],o4);}caU.set([bOn?(val('ca_clip')||0)/100:0,bOn?(val('ca_clips')||0)/100:0,(val('ca_gain')||0)/100,-1],o4);
   }
   CJ=-1;RSEED=0;
 }
