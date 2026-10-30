@@ -225,7 +225,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.03</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.04</div>
   </div>
 </div>
 
@@ -486,7 +486,16 @@ const DEV=[
 const TABS=[['ca','Каскады'],['sh','Сдвиги'],['fr','Заморозка']];let TAB='ca';
 const S={},ALL=[],SLOT=[],CELL=[];
 let ON=[true,false,false,false,false,false,false,false],MAN=Array(8).fill(null),RND=false,sel=-1,ACT=ON.slice(),CURV={},CURR={},CURC=[],CURCR=[],CURCD=[],CURPOLY=[],CJ=-1,CURD={sh:true,sw:true,ca:true,fr:true};
-const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1,ca_out:1,ca_light:1};let TNOW=0,BARG=2;let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
+const PCK={ca_fin:1,ca_fout:1,ca_shape:1,ca_size:1,ca_cnt:1,ca_rate:1,ca_shift:1,ca_dir:1,ca_drift:1,ca_edge:1,ca_fade:1,ca_sat:1,ca_axes:1,ca_rep:1,ca_pop:1,ca_grow:1,ca_hole:1,ca_door:1,ca_decay:1,ca_clip:1,ca_clips:1,ca_dclip:1,ca_dclips:1,ca_gain:1,ca_smooth:1,ca_lkey:1,ca_lsoft:1,ca_out:1,ca_light:1};
+// K-hole depth: one global macro (0 = off). It overrides the cascade settings of every picture by a stage curve.
+let DEPTH=0,DRND=false;
+function dmap(id,d){const e=d<.5?d/.5:1,l=d<.5?0:(d-.5)/.5;switch(id){
+  case 'ca_out':return Math.round(10-d*5);case 'ca_size':return Math.round(95-d*80);
+  case 'ca_cnt':return d<.4?0:d<.5?1:Math.round(1+l*3);case 'ca_shift':return d<.5?Math.round(2+e*4):Math.round(6+l*34);
+  case 'ca_rate':return Math.round(5-d*3);case 'ca_smooth':return Math.round(80-d*60);case 'ca_fade':return Math.round(40-d*40);
+  case 'ca_fin':return Math.round(60-d*50);case 'ca_fout':return Math.round(60-d*40);case 'ca_edge':return Math.round(20-d*15);
+  case 'ca_drift':return Math.round(d*30);case 'ca_decay':return 10;}return undefined;}
+const dPics=d=>d<.5?1+Math.floor((d/.5)*3+1e-6):4+Math.round((d-.5)/.5*4),dUnits=d=>d<.5?1:Math.round(1+(d-.5)/.5*7);let TNOW=0,BARG=2;let KIND='ca';const eff=(sp,k)=>k==='sh'&&sp.sh?sp.sh:sp;
 function defState(kind){const v={},r={},c={},cr={},d={};ALL.forEach(o=>{if(o.spec.g)return;if(PCK[o.id]){c[o.id]=eff(o.spec,kind).v;cr[o.id]=!!o.spec.rd;}else{v[o.id]=o.spec.v;r[o.id]=!!o.spec.rd;}});
   c.ca_fin=50;c.ca_fout=0;let D0={};
   if(kind==='ca'){c.ca_out=9;c.plays=0;c.ca_decay=10;c.ca_clip=25;c.ca_clips=10;c.ca_sizerev=2;c.ca_faderev=2;['ca_shape','ca_size','ca_cnt','ca_rate','ca_shift','ca_drift','ca_edge','ca_fade'].forEach(k=>cr[k]=true);
@@ -511,7 +520,7 @@ function commit(o){if(!o.spec.g&&SRC[ED]){vOf(SRC[ED].st,o.id)[o.id]=+o.el.value
 const PLN=[0,1,2,4,8];function plEff(v){const o=v.ca_out,bars=o>=100?secOf(o)/(240/bpm()):BARS[o],mx=bars/2+1e-6;let p=v.plays||0;while(p>0&&PLN[p]>mx)p--;return p;}
 const plOf=st=>{const c=st.cv[st.ce];return {ca_out:c.ca_out===undefined?(st.v.ca_out===undefined?6:st.v.ca_out):c.ca_out,plays:c.plays===undefined?(st.v.plays||0):c.plays};};
 function plUI(out){const s=SRC[ED],p=s?plEff(plOf(s.st)):0;out.dataset.n=p?'×'+PLN[p]:'';}
-const REVK={ca_size:'ca_sizerev',ca_fade:'ca_faderev'};const revOf=(j,key,salt)=>{const m=+CURC[j][key]||0;return m===2?rnd((RSEED||1)^salt)()<.5:m===1;};function dcUI(out,id){const s=SRC[ED];if(!s){out.dataset.rev='0';return;}const st=s.st,c=st.cv[st.ce];out.dataset.rev=TAB!=='ca'?'x':String(+c[REVK[id]]||0);}
+const REVK={ca_size:'ca_sizerev',ca_fade:'ca_faderev'};const revOf=(j,key,salt)=>{if(DEPTH>0&&KIND==='ca')return false;const m=+CURC[j][key]||0;return m===2?rnd((RSEED||1)^salt)()<.5:m===1;};function dcUI(out,id){const s=SRC[ED];if(!s){out.dataset.rev='0';return;}const st=s.st,c=st.cv[st.ce];out.dataset.rev=TAB!=='ca'?'x':String(+c[REVK[id]]||0);}
 function addSlider(parent,id,spec){if(spec.sh)spec.sh=Object.assign({},spec,spec.sh,{sh:null});const E=()=>eff(spec,TAB);
   const row=document.createElement('div');row.className='sl';
   const name=document.createElement('label');name.textContent=spec.n;name.htmlFor=id;
@@ -595,6 +604,9 @@ function rUI(){const st=SRC[ED]?SRC[ED].st:null;let any=false;
 addSlider($('glob'),'pad',{n:'Поле',min:0,max:40,v:10,f:fPct,nr:1,g:1});
 addSlider($('glob'),'q',{n:'Качество',min:30,max:100,v:95,step:5,f:fPct,nr:1,g:1});
 addSlider($('glob'),'fe',{n:'Края кадра',min:0,max:50,v:2,f:fPct,nr:1,g:1});
+addSlider($('glob'),'depth',{n:'K-hole',min:0,max:100,v:0,step:5,f:v=>{v=Math.round(v/5)*5;return v?v+'%':'выкл';},nr:1,g:1});
+{const rb=document.createElement('button');rb.type='button';rb.className='rb';rb.textContent='R';rb.id='depth_r';rb.setAttribute('aria-pressed','false');rb.setAttribute('aria-label','K-hole: случайные отклонения');
+  rb.addEventListener('click',()=>{DRND=!DRND;rb.setAttribute('aria-pressed',DRND);dirty=6;});S.depth.row.lastChild.replaceWith(rb);}
 const rack=$('rack');
 const tabs=document.createElement('div');tabs.className='tabs';tabs.setAttribute('role','group');tabs.setAttribute('aria-label','Три правила');rack.append(tabs);
 const dbox=document.createElement('section');dbox.className='dev';
@@ -672,6 +684,11 @@ DEV[0].p.forEach(sp=>addSlider(dbox,'ca_'+sp.k,sp));{const bx=document.createEle
 // A unit's R-marked settings are re-rolled only when that unit takes a new place (its "Ритм мест" step), never mid-run.
 let RSEED=0;const PIDX={ca_shape:1,ca_size:2,ca_cnt:3,ca_rate:4,ca_shift:5,ca_drift:7,ca_edge:8,ca_fade:9,ca_sat:10,ca_axes:11,ca_rep:12,ca_pop:13,ca_grow:14,ca_hole:15,ca_door:16,ca_decay:17,ca_clip:18,ca_clips:19,ca_dclip:20,ca_dclips:21,ca_fin:22,ca_fout:23,ca_gain:24,ca_smooth:25,ca_lkey:26,ca_lsoft:27,ca_light:28};
 const val=id=>{if(CJ>=0&&PCK[id]){
+    if(DEPTH>0&&KIND==='ca'){
+      if(id==='ca_shape')return Math.floor(rnd((RSEED||1)^0x5A9E3)()*19);
+      let v=dmap(id,DEPTH);
+      if(v!==undefined){if(DRND){const sp=S[id].spec,sd=id==='ca_out'?(Math.imul(CJ+1,977)^Math.imul(CURI+1,131)^Math.imul(Math.floor(TNOW/(8*BARG))+1,0x27d4eb2d)):((RSEED||1)^Math.imul((PIDX[id]||7)+3,0x85EBCA6B));
+          v=Math.round(Math.min(sp.max,Math.max(sp.min,v+(rnd(sd)()-.5)*.4*(sp.max-sp.min))));}return v;}}
     if(id==='ca_out'){const x=CURC[CJ].ca_out,base=x===undefined?(CURV.ca_out===undefined?6:CURV.ca_out):x;
       if(CURCR[CJ].ca_out){const sp=S[id].spec,rg=CURCD[CJ].ca_out||sp.r,lo=rg[0],hi=rg[1];return lo+Math.floor(rnd(Math.imul(Math.floor(TNOW/(16*BARG))+1,0x2C1B3C6D)^Math.imul(CJ+1,40503)^Math.imul(CURI+1,0x9E3779B1))()*(hi-lo+1));}
       return base;}
@@ -783,11 +800,12 @@ function rules(t,kind){KIND=kind;
     if(en.length>1){const r=rnd(Math.imul(Math.floor(t/PoutG)+1,7919)^Math.imul(CURI+1,0x9E3779B1)^Math.imul(di+1,97531));const c=1+Math.floor(r()*en.length);
       for(let i=en.length-1;i>0;i--){const q=Math.floor(r()*(i+1));[en[i],en[q]]=[en[q],en[i]];}
       ACT=ACT.map(()=>false);en.slice(0,c).forEach(i=>ACT[i]=true);}}
-  let na=0;for(let q=0;q<8;q++)if(ACT[q]&&!MAN[q])na++;
+  const DM=DEPTH>0&&kind==='ca';if(DM){const nF=dUnits(DEPTH);ACT=ACT.map((_,i)=>i<nF);}
+  let na=0;for(let q=0;q<8;q++)if(ACT[q]&&!(DM?null:MAN[q]))na++;
   for(let j=0;j<8;j++){
     if(!ACT[j])continue;CJ=j;
-    const ov=val('ca_out'),Pout=perOf(ov),plj=plEff({ca_out:ov,plays:CURC[j].plays===undefined?CURV.plays:CURC[j].plays});
-    const mp=MAN[j];let sk=Math.floor(t/Pout),pr=0,ja=0,tl=-1;
+    const ov=val('ca_out'),Pout=perOf(ov),plj=plEff({ca_out:ov,plays:DM?(DEPTH<.5?1:0):(CURC[j].plays===undefined?CURV.plays:CURC[j].plays)});
+    const mp=DM?null:MAN[j];let sk=Math.floor(t/Pout),pr=0,ja=0,tl=-1;
     for(let q=0;q<j;q++)if(ACT[q]&&!MAN[q])ja++;
     let PoX=Pout,PcM=Pout;
     if(kind==='sh'){RSEED=0;const Tn=Math.min(8,Math.max(1,val('ca_cnt')))*Math.max(1,Math.min(8,val('ca_shift')))*perOf(val('ca_rate')),kk=Math.max(1,Math.ceil(Tn/Pout-1e-6));PcM=kk*Pout;PoX=Math.max(PoX,PcM);sk=Math.floor(t/PcM);}
@@ -828,7 +846,7 @@ function rules(t,kind){KIND=kind;
       let ri,tt;if(npl){ri=Math.floor(tlc/slot+1e-9);tt=Math.min(ts,T);}else{ri=Math.floor(tlc/T+1e-9);tt=tlc-ri*T;}
       let li=Math.min(nL-1,Math.floor(tt/PL+1e-9)),fr=Math.min(1,Math.max(0,(tt-li*PL)/PL));
       const cv0=fr*len,cn=Math.min(len-1,Math.floor(cv0+1e-9)),e0=sm<=.01?1:Math.min(1,(cv0-cn)/sm),e=(cn+e0*e0*(3-2*e0))/len;let u=li+e;if(rp===1&&ri%2)u=nL-u;
-      const route=k=>{const rr=rnd(seed^Math.imul(k+1,0x51ED27)),dgs=CURCR[j].ca_dir?rr()*360:val('ca_dir'),a=(90-dgs)*Math.PI/180,vx=Math.cos(a),vy=Math.sin(a);
+      const route=k=>{const rr=rnd(seed^Math.imul(k+1,0x51ED27)),dgs=(CURCR[j].ca_dir||(DEPTH>0&&KIND==='ca'))?rr()*360:val('ca_dir'),a=(90-dgs)*Math.PI/180,vx=Math.cos(a),vy=Math.sin(a);
         let d=ax===0?[vx>=0?1:-1,0]:ax===1?[0,vy>=0?1:-1]:ax===2?(Math.abs(vx)>=Math.abs(vy)?[vx>=0?1:-1,0]:[0,vy>=0?1:-1]):[vx,vy];const ds=[d];
         for(let i=1;i<nL;i++){if(ax>=2){const sg=rr()<.5?1:-1;d=[-d[1]*sg,d[0]*sg];}ds.push(d);}return ds;};
       const at=(ds,uu)=>{let px=0,py=0;for(let i=0;i<nL;i++){const f=Math.max(0,Math.min(1,uu-i));px+=ds[i][0]*f;py+=ds[i][1]*f;}return [px,py];};
@@ -847,7 +865,7 @@ function rules(t,kind){KIND=kind;
       const hm=val('ca_hole'),hs=nL>1?P:P*.5,ha=hm===1?1:hm===2?1-Math.min(1,Math.max(0,(tt-hs)/hs)):0;
       caU.set([x,y,rw,rh],o4);caH.set([mx-1,my-1,ha*am,0],o4);
       continue;}
-    const dgr=CURCR[j].ca_dir?r()*360:val('ca_dir'),an=(90-dgr)*Math.PI/180,sx=Math.cos(an)*lp/PW,sy=Math.sin(an)*lp/PH,sft=shPct(val('ca_shift'))/100,o4=(base+j)*4;
+    const dgr=(CURCR[j].ca_dir||(DEPTH>0&&KIND==='ca'))?r()*360:val('ca_dir'),an=(90-dgr)*Math.PI/180,sx=Math.cos(an)*lp/PW,sy=Math.sin(an)*lp/PH,sft=shPct(val('ca_shift'))/100,o4=(base+j)*4;
     const dr=val('ca_drift')/100*pr,fv0=val('ca_fade'),fA=Math.abs(fv0)/100,fv=fv0>=0&&revOf(j,'ca_faderev',0x7FADE1)?fA:-fA,fa=cN>1?fA/(cN-1):0;
     caR.set([x,y,rw,rh],o4);caP.set([sx*sft,sy*sft,val('ca_edge')/100,cc*msk],o4);
     caQ.set([fv<0?-fa:fa,-sx*dr,-sy*dr,fv<0?1+fa:1-fA-fa],o4);caS.set([ku,am,1+(val('ca_sat')||0)/100,dA],o4);caH.set([0,0,0,dB],o4);caK.set([kind==='ca'?((()=>{const lv=val('ca_light')||0;return lv>0?-(1-lv/100):lv<0?(1+lv/100):(val('ca_lkey')||0)/100;})()):0,(()=>{const q=val('ca_lsoft');return (q===undefined?15:q)/200;})(),kind==='ca'&&val('ca_shape')===20?1:0,0],o4);{const sm=kind==='ca'?(val('ca_smooth')||0)/100:0,e0=sm<=.01?1:Math.min(1,cfr/sm),ee=e0*e0*(3-2*e0);caF.set([0,0,0,ee-1],o4);}if(dg>0&&dg<1){const ix=Math.min(cN-1,Math.floor(dg*cN));caF.set([dcv<0?ix+1:cN-ix,(val('ca_dclip')||0)/100,(val('ca_dclips')||0)/100,caF[o4+3]],o4);}caU.set([bOn?(val('ca_clip')||0)/100:0,bOn?(val('ca_clips')||0)/100:0,(val('ca_gain')||0)/100,-1],o4);
@@ -940,8 +958,10 @@ function frame(now){
   if(playing&&beat!==lastBeat)beatShuffle(.5);
   lastBeat=beat;
   if(polyEdit)pgDraw();
+  DEPTH=S.depth?Math.round((+S.depth.el.value||0)/5)*5/100:0;
   const main=SRC[MAIN],order=[MAIN];
-  SRC.forEach((s,i)=>{if(s&&i!==MAIN&&s.active)order.push(i);});
+  if(DEPTH>0){const np=dPics(DEPTH);SRC.forEach((s,i)=>{if(s&&i!==MAIN&&!s.blank&&order.length<np)order.push(i);});}
+  else SRC.forEach((s,i)=>{if(s&&i!==MAIN&&s.active)order.push(i);});
   gl.viewport(0,0,W,H);gl.activeTexture(gl.TEXTURE0);
   order.forEach(i=>{const s=SRC[i];if(s.kind==='vid'&&s.el.readyState>=2)upload(s.el,s.tex);});
   if(main.kind==='demo'){
@@ -958,7 +978,7 @@ function frame(now){
   gl.drawArrays(gl.TRIANGLES,0,3);
   gl.useProgram(PB);gl.uniform1i(ub.s,0);gl.uniform1i(ub.p,1);gl.uniform1i(ub.b,2);gl.uniform1i(ub.m,3);gl.uniform2f(ub.res,W,H);
   const ma=asp(main);
-  order.forEach(i=>{const s=SRC[i];CURI=i;rulesBegin();TABS.forEach(([k])=>{if(s.dev[k]){bind(s.grp[k]);rules(t,k);}});if(skipFr>0)frR.fill(0);
+  order.forEach(i=>{const s=SRC[i];CURI=i;rulesBegin();TABS.forEach(([k])=>{if(s.dev[k]||(DEPTH>0&&k==='ca')){bind(s.grp[k]);rules(t,k);}});if(skipFr>0)frR.fill(0);
     gl.bindFramebuffer(gl.FRAMEBUFFER,fbs[ni].f);
     gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,P.tex);
     gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,fbs[ai].tex);
