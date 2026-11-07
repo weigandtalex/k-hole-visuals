@@ -175,11 +175,18 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
   #panel{flex:0 0 380px;max-height:none;border-top:0;border-left:1px solid var(--line)}
   #app #split{display:block}
 }
+#panel.wide{display:grid;grid-template-columns:minmax(360px,1fr) minmax(400px,1.2fr);gap:22px;align-items:start}
+#panel.wide .pcol{display:flex;flex-direction:column;gap:14px;min-width:0}
+#panel.wide .pushsvg{max-width:760px}
+#panel.w3{grid-template-columns:minmax(340px,1fr) minmax(380px,1fr) minmax(360px,1.25fr)}
+#lamp{grid-template-columns:repeat(auto-fit,minmax(262px,1fr))!important}.lsl{grid-template-columns:52px 24px minmax(0,1fr) 24px 24px 46px 24px;gap:4px}.lsl .st,.lsl .rb,.lsl .db{width:24px}.pnl .lampm button{padding:6px 2px}.pnl .lampm{flex-wrap:wrap}.pnl .lampm button{flex:1 1 auto}
+.pnl{container-type:inline-size}
+@container (max-width:340px){.lsl{grid-template-columns:50px minmax(0,1fr) 22px 44px 22px}.lsl .st{display:none}.lsl .rb,.lsl .db{width:22px}.lamphd .lall{padding:6px 4px}}#lamp>.pnl:first-child{grid-column:1/-1}
 #split{display:none;flex:0 0 10px;margin:0 -5px;position:relative;z-index:3;cursor:ew-resize;touch-action:none}
 #split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
 #split:hover::after,#split.drag::after{background:var(--cr)}
 #app.full #split{display:none}
-.lampbox{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.lampbox{}
 .lamphd{gap:8px}.lamphd .dim{flex:0 0 58px}
 .lampm{display:flex;gap:4px;flex-wrap:wrap}.lampm button{flex:1 1 0;padding:6px 2px;font-size:11px;min-width:0}
 .lampm button[aria-pressed="true"],#lamp_conn.ok{color:var(--void);background:var(--cr);border-color:var(--cr)}
@@ -187,7 +194,13 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .lampsec{display:flex;flex-direction:column;gap:6px;padding-top:6px}.lampsec+.lampsec{border-top:1px dashed var(--line);padding-top:10px}
 .lst{font-size:11px;color:var(--haze);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lst.ok{color:var(--cr)}
 #au_on.ok,#lamp2_link[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}#lamp2_box.linked .lampm{opacity:.35}
-.aut{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.aub{--l:0;position:relative;overflow:hidden;padding:8px 2px;font-size:11px}
+.aut{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.auc{display:flex;flex-direction:column;gap:3px;min-width:0}.aul{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.aulb{padding:4px 0;font-size:10px}.aulb[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
+#lamp{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;border-top:1px solid var(--line);padding-top:12px}
+.pnl{border:1px solid var(--line);border-radius:6px;padding:10px!important}.lampsec+.lampsec{border-top:1px solid var(--line)!important}
+.ptitle{font-size:12px;color:var(--ice,#dfe7f5);flex:0 0 auto;margin-right:2px}
+.lampm button[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}.lampm button:disabled{opacity:.3}
+.srcrow .srcb{flex:1;text-align:left;padding:6px 8px}.lampsec.linked .lampm:not(:first-of-type){opacity:.35}.aub{--l:0;position:relative;overflow:hidden;padding:8px 2px;font-size:11px}
 .aub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(var(--l)*100%);background:var(--cr);opacity:.45;pointer-events:none}
 .gpl .aub{outline:1px dashed var(--cr)}
 .allh{font-size:10px;padding:2px}.allh[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
@@ -198,7 +211,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
 #out[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #app.ctl{flex-direction:row}
 #app.ctl #split{display:none!important}
-#app.ctl #panel{zoom:1!important;flex:1 1 100%;max-height:none;height:100%;display:grid;grid-template-columns:minmax(270px,21%) minmax(0,1fr) minmax(380px,29%);gap:20px;overflow:hidden;border:0;padding:12px 16px}
+#app.ctl #panel{zoom:1!important;flex:1 1 100%!important;flex:1 1 100%;max-height:none;height:100%;display:grid;grid-template-columns:minmax(270px,21%) minmax(0,1fr) minmax(380px,29%);gap:20px;overflow:hidden;border:0;padding:12px 16px}
 #app.ctl .pcol{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px}
 #app.ctl .pcl #view{flex:0 0 auto;width:100%;min-height:0;border:1px solid var(--line)}
 #app.ctl .pcl #note{display:none}
@@ -240,7 +253,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
     <input id="pgr" type="range" min="0" max="100" value="0" hidden aria-label="Скругление выбранного угла">
     <div id="note">демо-сцена · нажми + в ячейке, чтобы добавить фото или видео</div>
   </div>
-  <div id="split" role="separator" aria-orientation="vertical" title="Тяни влево — панель крупнее. Двойной клик — обычный размер"></div>
+  <div id="split" role="separator" aria-orientation="vertical" title="Тяни влево — панель шире (лампы и звук встанут рядом). Двойной клик — обычная ширина"></div>
   <div id="panel">
     <div id="srcs" class="srcs" role="group" aria-label="Восемь картинок"></div>
     <div class="bar top">
@@ -284,7 +297,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.22</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.23</div>
   </div>
 </div>
 
@@ -416,7 +429,7 @@ function fitView(){
   if(media&&narrow.matches){const ah=appEl.clientHeight,z=1-(S.pad?+S.pad.el.value:20)/100,want=appEl.clientWidth/(media.w/media.h)*z;
     const h=Math.round(Math.min(ah*.6,Math.max(ah*.34,want)));
     view.style.flex='0 0 '+h+'px';view.style.minHeight='0';panelEl.style.maxHeight='none';panelEl.style.flex='1 1 0';panelEl.style.minHeight='0';}
-  else{view.style.flex='';view.style.minHeight='';panelEl.style.maxHeight='';panelEl.style.flex='';panelEl.style.minHeight='';}
+  else{view.style.flex='';view.style.minHeight='';panelEl.style.maxHeight='';panelEl.style.flex=PANW&&!narrow.matches?'0 0 '+PANW+'px':'';panelEl.style.minHeight='';}
 }
 const OUT={w:null};
 function resize(force){
@@ -1287,25 +1300,38 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length&
       else if(on&&/_(up|dn)$/.test(m.id)&&GP.rep&&now>GP.rep[k]){el.click();GP.rep[k]=now+70;}}});}
 requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},500);
 
-// ---- Panel zoom: drag the handle between picture and panel (side layout only)
-{const sp=$('split'),pn=$('panel');let Z=1;try{Z=+localStorage.getItem('kh_pz')||1;}catch(_){}
-  const setZ=z=>{Z=Math.min(2.4,Math.max(1,z));pn.style.zoom=Z===1?'':Z;try{localStorage.setItem('kh_pz',Z);}catch(_){}resize();};setZ(Z);
-  let x0=0,z0=1,on=false;
-  sp.addEventListener('pointerdown',e=>{on=true;x0=e.clientX;z0=Z;sp.classList.add('drag');try{sp.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
-  sp.addEventListener('pointermove',e=>{if(!on)return;setZ(z0+(x0-e.clientX)/380);});
+// ---- Panel width: drag the handle between picture and panel (side layout). Wide panel → two columns, and the Sound / Lamp panels sit side by side.
+const SIDE=window.matchMedia('(min-width:860px) and (min-aspect-ratio:1/1)');
+var PANW=0;const WIDE={on:false,ord:null,cols:null};
+// on: false | 2 | 3 columns
+function wideSet(on){if(on===WIDE.on)return;
+  if(WIDE.on){WIDE.ord.forEach(e=>panelEl.append(e));WIDE.cols.forEach(c=>c.remove());WIDE.ord=WIDE.cols=null;panelEl.classList.remove('wide','w3');}
+  if(on){WIDE.ord=[...panelEl.children];const mkc=c=>{const d=document.createElement('div');d.className='pcol '+c;return d;},A=mkc('pwa'),B=mkc('pwb');
+    A.append($('srcs'),panelEl.querySelector('.bar.top'),$('gph'));WIDE.cols=[A,B];
+    if(on===3){const C=mkc('pwc');C.append($('lamp'));WIDE.cols.push(C);}
+    WIDE.ord.forEach(e=>{if(e.parentNode===panelEl)B.append(e);});panelEl.append(...WIDE.cols);panelEl.classList.add('wide');if(on===3)panelEl.classList.add('w3');}
+  WIDE.on=on;}
+function wideCheck(){const w=panelEl.clientWidth,ok=SIDE.matches&&!appEl.classList.contains('ctl')&&!appEl.classList.contains('full');
+  const want=!ok?false:w>=1250?3:w>=800?2:false;if(want!==WIDE.on)wideSet(want);}
+{const sp=$('split'),pn=panelEl;let PW=380;try{PW=+localStorage.getItem('kh_pw')||380;localStorage.removeItem('kh_pz');}catch(_){}
+  const setW=w=>{const mx=Math.max(380,window.innerWidth*.82);PW=Math.round(Math.min(mx,Math.max(380,w)));PANW=SIDE.matches?PW:0;if(SIDE.matches)pn.style.flex='0 0 '+PW+'px';else pn.style.flex='';pn.style.zoom='';try{localStorage.setItem('kh_pw',PW);}catch(_){}wideCheck();resize();};
+  setW(PW);SIDE.addEventListener&&SIDE.addEventListener('change',()=>setW(PW));
+  let x0=0,w0=380,on=false;
+  sp.addEventListener('pointerdown',e=>{on=true;x0=e.clientX;w0=PW;sp.classList.add('drag');try{sp.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+  sp.addEventListener('pointermove',e=>{if(!on)return;setW(w0+(x0-e.clientX));});
   const end=()=>{on=false;sp.classList.remove('drag');};sp.addEventListener('pointerup',end);sp.addEventListener('pointercancel',end);
-  sp.addEventListener('dblclick',()=>setZ(1));}
+  sp.addEventListener('dblclick',()=>setW(380));window.addEventListener('resize',wideCheck);}
 
 // ---- Second screen: the picture goes to its own window (live stream of the canvas); this window becomes a 3-column control desk
 {const ob=$('out');let ORD=null,COLS=null,STR=null,poll=0;
-  function ctlOn(){if(appEl.classList.contains('ctl'))return;ORD=[...panelEl.children];
+  function ctlOn(){if(appEl.classList.contains('ctl'))return;wideSet(false);ORD=[...panelEl.children];
     COLS=['pcl','pcc','pcr'].map(c=>{const d=document.createElement('div');d.className='pcol '+c;return d;});
     const [L,C,R]=COLS;L.append(view,$('srcs'),panelEl.querySelector('.bar.top'));C.append($('gph'));
     ORD.forEach(e=>{if(e.parentNode===panelEl)R.append(e);});panelEl.append(L,C,R);
     appEl.classList.add('ctl');midiInit();GP.info=null;gpHint();resize(true);}
   function ctlOff(){if(!appEl.classList.contains('ctl'))return;appEl.classList.remove('ctl');
     appEl.insertBefore(view,$('split'));ORD.forEach(e=>panelEl.append(e));COLS.forEach(c=>c.remove());ORD=COLS=null;view.style.aspectRatio='';
-    gpHint();resize(true);}
+    gpHint();resize(true);wideCheck();}
   function close(){clearInterval(poll);const w=OUT.w;OUT.w=null;if(STR){STR.getTracks().forEach(t=>t.stop());STR=null;}try{if(w&&!w.closed)w.close();}catch(_){}ob.setAttribute('aria-pressed','false');ctlOff();}
   async function place(w){try{if(!window.getScreenDetails)return;const sd=await getScreenDetails(),cur=sd.currentScreen;
       const o=sd.screens.filter(x=>x!==cur).sort((a,b)=>b.width*b.height-a.width*a.height)[0];if(!o||!w||w.closed)return;
@@ -1354,33 +1380,68 @@ function auTick(now){requestAnimationFrame(auTick);if(!AU.on)return;AU.an.getFlo
     if(el.type==='range'){const mx=+el.max,st=+(S[m.id]&&S[m.id].spec.step)||1;if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k];gpSet(el,Math.round((b0+v*(mx-b0))/st)*st);}
     else{if(v>.7&&!((GP.prev[k]||0)>.7))el.click();GP.prev[k]=v;}});}
 requestAnimationFrame(auTick);
-// ---- Yongnuo YN360 lamps over Web Bluetooth (protocol as documented by the open yn360-ble project). Two lamps, each with its own settings; lamp 2 can follow lamp 1.
+// ---- Yongnuo YN360 lamps over Web Bluetooth (protocol as documented by the open yn360-ble project).
+// Each lamp: on/off, white or colour (or colour taken from the picture), and a source it reacts to — set in the Sound panel (bass / mid / high / loudness / BPM beat).
 const LSVC='f000aa60-0451-4000-b000-000000000000',LCHR='f000aa61-0451-4000-b000-000000000000';
-const LMODES=['Выкл','Белый','Цвет','Кадр','Вспышки','Звук'];
-const LUSE=[[],['br','k'],['br','hue','sat'],['br','sat','sm'],['br','hue','sat','fl'],['br','hue','sat','band','thr','rel']],LSL=['br','k','hue','sat','sm','fl','band','thr','rel'],LRND=['br','hue','sat'];
 const hsv=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return [f(5),f(3),f(1)].map(x=>Math.round(x*255));};
-const LAMPS=[{p:'lamp_',n:'Лампа 1'},{p:'lamp2_',n:'Лампа 2'}].map(o=>Object.assign(o,{dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0],err:'',rx:0,rnd:{br:false,hue:false,sat:false},lvl:0,pv:0,hitT:0,lastBeat:-1,rh:0,rs:100,rb:1}));
-const lxSave=L=>{try{localStorage.setItem('kh_lx'+L.p,JSON.stringify({rx:L.rx,rnd:L.rnd}));}catch(_){}};
-function lampHit(L){L.rh=Math.floor(Math.random()*72)*5;L.rs=40+Math.random()*60;L.rb=.3+Math.random()*.7;}
-let LLINK=false;
-const src=L=>LLINK&&L===LAMPS[1]?LAMPS[0]:L,lv=(L,k)=>+S[src(L).p+k].el.value;
-function lampUI(L){const st=$(L.p+'st'),cb=$(L.p+'conn'),on=!!L.ch,m=src(L).mode;
+const SRCN=['Бас','Середина','Верх','Громкость','Такт'];
+const LAMPS=[{p:'lamp_',n:'Лампа 1'},{p:'lamp2_',n:'Лампа 2'}].map(o=>Object.assign(o,{dev:null,ch:null,busy:false,last:'',lt:0,sm:[0,0,0],err:'',
+  on:true,white:true,pic:false,rx:0,band:-1,lvl:0,pv:0,hitT:0,lastBeat:-1,rv:{}}));
+let LLINK=false;try{LLINK=localStorage.getItem('kh_llink')==='1';}catch(_){}
+LAMPS.forEach(L=>{try{const x=JSON.parse(localStorage.getItem('kh_l2'+L.p)||'null');if(x)['on','white','pic','rx','band'].forEach(k=>{if(x[k]!==undefined)L[k]=x[k];});}catch(_){}});
+const lSave=L=>{try{localStorage.setItem('kh_l2'+L.p,JSON.stringify({on:L.on,white:L.white,pic:L.pic,rx:L.rx,band:L.band}));}catch(_){}};
+// lamp slider values, random flags and random ranges — their own store, apart from the picture state
+let LST={v:{},r:{},d:{}};try{const x=JSON.parse(localStorage.getItem('kh_lst')||'null');if(x&&x.v)LST=x;}catch(_){}
+const lstSave=()=>{try{localStorage.setItem('kh_lst',JSON.stringify(LST));}catch(_){}};
+function lampSlider(parent,id,spec){const row=document.createElement('div');row.className='sl lsl';
+  const name=document.createElement('label');name.textContent=spec.n;name.htmlFor=id;
+  const mkR=c=>{const e=document.createElement('input');e.type='range';e.min=spec.min;e.max=spec.max;e.step=1;if(c)e.className=c;return e;};
+  const el=mkR('');el.id=id;el.value=LST.v[id]===undefined?spec.v:LST.v[id];const lo=mkR('lo'),hi=mkR('hi');lo.hidden=hi.hidden=true;
+  const mid=document.createElement('div');mid.className='rg';mid.append(el,lo,hi);
+  const out=document.createElement('output');out.id=id+'_o';
+  const bt=(t,cls,idd)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.className=cls;if(idd)b.id=idd;return b;};
+  const dn=bt('◂','st',id+'_dn'),up=bt('▸','st',id+'_up');
+  const db=spec.rr?bt('D','db',id+'_d'):document.createElement('span'),rb=spec.rr?bt('R','rb',id+'_r'):document.createElement('span');
+  let act='hi';const rg=()=>LST.r[id]&&LST.d[id]?LST.d[id]:null;
+  const ui=()=>{const r=!!LST.r[id],d=rg();row.classList.toggle('auto',r);if(spec.rr){rb.setAttribute('aria-pressed',r);db.disabled=!r;db.setAttribute('aria-pressed',!!d);}
+    el.hidden=!!d;lo.hidden=hi.hidden=!d;if(d){lo.value=d[0];hi.value=d[1];lo.classList.toggle('act',act==='lo');hi.classList.toggle('act',act==='hi');}
+    out.classList.remove('two','rg1');
+    if(d){const A=String(spec.f(d[0])),B=String(spec.f(d[1])),pc=A.endsWith('%')&&B.endsWith('%'),one=pc&&(A.length+B.length)<=8;out.classList.toggle(one?'rg1':'two',true);out.textContent=one?A.slice(0,-1)+'–'+B:A+'\n'+B;}
+    else out.textContent=r?'R':spec.f(+el.value);};
+  el.addEventListener('input',()=>{LST.v[id]=+el.value;lstSave();ui();});
+  const setD=()=>{let a=+lo.value,b=+hi.value;if(a>b){if(act==='lo')a=b;else b=a;}LST.d[id]=[a,b];lstSave();ui();};
+  lo.addEventListener('pointerdown',()=>{act='lo';});hi.addEventListener('pointerdown',()=>{act='hi';});
+  lo.addEventListener('input',()=>{act='lo';setD();});hi.addEventListener('input',()=>{act='hi';setD();});
+  const step=k=>{const d=rg(),st=spec.step||1;if(d){if(act==='lo')lo.value=Math.min(+hi.value,Math.max(spec.min,+lo.value+k*st));else hi.value=Math.max(+lo.value,Math.min(spec.max,+hi.value+k*st));setD();return;}
+    el.value=Math.min(spec.max,Math.max(spec.min,+el.value+k*st));el.dispatchEvent(new Event('input',{bubbles:true}));};
+  dn.addEventListener('click',()=>step(-1));up.addEventListener('click',()=>step(1));
+  if(spec.rr){rb.addEventListener('click',()=>{LST.r[id]=!LST.r[id];lstSave();ui();});
+    db.addEventListener('click',()=>{if(!LST.r[id])return;LST.d[id]=LST.d[id]?null:(spec.dr||[spec.min,spec.max]).slice();lstSave();ui();});}
+  row.append(name,dn,mid,up,db,out,rb);parent.append(row);S[id]={el,out,spec,row,up,show:ui,id};ui();return S[id];}
+const lsrc=L=>LLINK&&L===LAMPS[1]?LAMPS[0]:L;
+const lraw=(L,k)=>+S[lsrc(L).p+k].el.value;
+const lval=(L,k)=>{const S0=lsrc(L),id=S0.p+k;return LST.r[id]&&S0.rv[k]!==undefined?S0.rv[k]:+S[id].el.value;};
+function lampHit(L){['br','k','hue','sat'].forEach(k=>{const id=L.p+k;if(!LST.r[id])return;const sp=S[id].spec,d=LST.d[id]||[sp.min,sp.max],st=sp.step||1;L.rv[k]=Math.round((d[0]+Math.random()*(d[1]-d[0]))/st)*st;});}
+function lampUI(L){const st=$(L.p+'st'),cb=$(L.p+'conn'),on=!!L.ch,S0=lsrc(L),lk=LLINK&&L===LAMPS[1];
   st.textContent=on?(L.dev.name||'лампа')+' · подключена':L.err||(L.dev?(L.dev.name||'лампа')+' · отключена':'не подключена');st.classList.toggle('ok',on);
   cb.textContent=on?'Отключить':'Подключить';cb.classList.toggle('ok',on);
-  LMODES.forEach((_,k)=>$(L.p+'m'+k).setAttribute('aria-pressed',L.mode===k));
-  [0,1].forEach(k=>$(L.p+'rx'+k).setAttribute('aria-pressed',L.rx===k));$(L.p+'rxrow').classList.toggle('loff',L.mode!==5||(LLINK&&L===LAMPS[1]));
-  LRND.forEach(k=>$(L.p+k+'_r').setAttribute('aria-pressed',!!L.rnd[k]));
-  LSL.forEach(k=>S[L.p+k].row.classList.toggle('loff',!LUSE[L.mode].includes(k)||(LLINK&&L===LAMPS[1])));
-  if(L===LAMPS[1]){$('lamp2_link').setAttribute('aria-pressed',LLINK);$('lamp2_box').classList.toggle('linked',LLINK);}}
+  const pr=(id,v)=>{const e=$(id);if(e)e.setAttribute('aria-pressed',!!v);};
+  pr(L.p+'pow',L.on);pr(L.p+'wh',L.white);pr(L.p+'col',!L.white);pr(L.p+'pic',L.pic&&!L.white);pr(L.p+'rx0',L.rx===0);pr(L.p+'rx1',L.rx===1);
+  $(L.p+'pic').disabled=L.white;$(L.p+'srcb').textContent='Источник: '+(L.band<0?'нет':SRCN[L.band])+' ▸';
+  const use={br:1,k:S0.white,hue:!S0.white&&!S0.pic,sat:!S0.white,sm:!S0.white&&S0.pic,thr:S0.band>=0&&S0.band<4,rel:S0.band>=0};
+  Object.keys(use).forEach(k=>S[L.p+k].row.classList.toggle('loff',!use[k]||lk));
+  $(L.p+'rxrow').classList.toggle('loff',S0.band<0||lk);$(L.p+'box').classList.toggle('linked',lk);
+  if(L===LAMPS[1])pr('lamp2_link',LLINK);
+  for(let b=0;b<5;b++)LAMPS.forEach((Q,qi)=>pr('au_l'+(qi+1)+'_'+b,Q.band===b));}
 const lampsUI=()=>LAMPS.forEach(lampUI);
-function lampMode(L,k){L.mode=k;L.last='';try{localStorage.setItem('kh_lmode'+L.p,k);}catch(_){}lampsUI();}
 async function lampConn(L,all){L.err='';if(all&&L.ch){try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;}if(all)L.dev=null;
   if(!navigator.bluetooth){L.err='Bluetooth в браузере выключен: brave://flags → Web Bluetooth API → Enabled';lampUI(L);return;}
   if(L.ch){try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;lampUI(L);return;}
   try{const d=L.dev||await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true,optionalServices:[LSVC]}:{filters:[{namePrefix:'YN'},{namePrefix:'Yongnuo'},{namePrefix:'YONGNUO'},{services:[LSVC]}],optionalServices:[LSVC]});
     if(!L.dev){L.dev=d;d.addEventListener('gattserverdisconnected',()=>{L.ch=null;lampUI(L);});}
     $(L.p+'st').textContent='подключаю '+(d.name||'')+'…';
-    const srv=await d.gatt.connect();let sv;try{sv=await srv.getPrimaryService(LSVC);}catch(_){try{d.gatt.disconnect();}catch(__){}L.dev=null;throw new Error('у «'+(d.name||'устройства')+'» нет канала лампы YN360 — выбрано не то устройство');}L.ch=await sv.getCharacteristic(LCHR);L.last='';if(!L.mode)lampMode(L,1);}
+    const srv=await d.gatt.connect();let sv;try{sv=await srv.getPrimaryService(LSVC);}catch(_){try{d.gatt.disconnect();}catch(__){}L.dev=null;throw new Error('у «'+(d.name||'устройства')+'» нет канала лампы YN360 — выбрано не то устройство');}
+    L.ch=await sv.getCharacteristic(LCHR);L.last='';}
   catch(e){L.ch=null;L.err=e&&e.name==='NotFoundError'?'лампа не выбрана — если её нет в списке, жми «🔍 все»':'не вышло: '+((e&&e.message)||'ошибка').slice(0,90);}
   lampUI(L);}
 function lampSend(L,b){if(!L.ch||L.busy)return false;L.busy=true;const a=new Uint8Array(b),c=L.ch;
@@ -1390,52 +1451,65 @@ function lampFrame(){if(!lampCv){lampCv=document.createElement('canvas');lampCv.
   const x=lampCv.getContext('2d',{willReadFrequently:true});try{x.drawImage(canvas,0,0,8,8);}catch(_){return [0,0,0];}
   const d=x.getImageData(0,0,8,8).data;let r=0,g=0,b=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}return [r/64,g/64,b/64];}
 const OFF=[0xAE,0xA3,0,0,0,0x56];
-function lampTick(L){const S0=src(L),m=S0.mode,now0=performance.now();
-  if(m===5){const thr=lv(L,'thr')/100,dec=Math.pow(.55+.43*lv(L,'rel')/100,70/16),raw=AU.on?(AU.r[lv(L,'band')]||0):0,v=Math.max(0,Math.min(1,(raw-thr)/Math.max(.05,1-thr)));
-    L.lvl=Math.max(v,L.lvl*dec);if(v>.5&&L.pv<=.5&&now0-L.hitT>120){L.hitT=now0;lampHit(L);}L.pv=v;}
-  else if(m===4){const bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if(bt!==L.lastBeat){L.lastBeat=bt;lampHit(L);}}
-  if(!L.ch)return;const rn=S0.rnd,br=lv(L,'br')/100*(rn.br?S0.rb:1);let cmd;
-  if(m===0)cmd=OFF;
-  else if(m===1){const k=lv(L,'k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:OFF;}
-  else{let rgb;const hue=rn.hue&&m>=4?S0.rh:lv(L,'hue'),sat=rn.sat&&m>=4?S0.rs/100:lv(L,'sat')/100;
-    if(m===2)rgb=hsv(hue,sat,br);
-    else if(m===4){let l;const len=lv(L,'fl')/100;
-      if(AU.on){const dt=performance.now()-AU.beat,ms=60+len*540;l=dt<ms?1-dt/ms:0;}else{const ph=(t*bpm()/60)%1;l=ph<len?1-ph/len:0;}
-      rgb=hsv(hue,sat,br*l);}
-    else if(m===5){const g=S0.rx===1?(L.lvl>.5?1:0):L.lvl;rgb=hsv(hue,sat,br*g);}
-    else{let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lv(L,'sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),Lm=Math.min(1,mx/255);
-      c=c.map(x=>x/mx*255*br*Math.sqrt(Lm));const a=1-lv(L,'sm')/100*.92;L.sm=L.sm.map((v,i)=>v+(c[i]-v)*a);rgb=L.sm.map(Math.round);}
-    rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:OFF;}
+function lampLevel(L){const S0=lsrc(L),b=S0.band,now=performance.now();if(b<0)return 1;
+  const rel=lraw(L,'rel')/100;
+  if(b===4){const x=t*bpm()/60,beat=Math.floor(x),ph=x-beat;if(beat!==L.lastBeat){L.lastBeat=beat;lampHit(L);}const len=.08+.8*rel;return S0.rx===1?(ph<len?1:0):(ph<len?1-ph/len:0);}
+  if(!AU.on)return 1;
+  const thr=lraw(L,'thr')/100,dec=Math.pow(.55+.43*rel,70/16),v=Math.max(0,Math.min(1,((AU.r[b]||0)-thr)/Math.max(.05,1-thr)));
+  L.lvl=Math.max(v,L.lvl*dec);if(v>.5&&L.pv<=.5&&now-L.hitT>120){L.hitT=now;lampHit(L);}L.pv=v;
+  return S0.rx===1?(L.lvl>.5?1:0):L.lvl;}
+function lampTick(L){const S0=lsrc(L),g=lampLevel(L);if(!L.ch)return;let cmd;
+  if(!S0.on)cmd=OFF;
+  else{const br=lval(L,'br')/100*g;
+    if(S0.white){const k=lval(L,'k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:OFF;}
+    else{let rgb;
+      if(S0.pic){let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lval(L,'sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),Lm=Math.min(1,mx/255);
+        c=c.map(x=>x/mx*255*br*Math.sqrt(Lm));const a=1-lraw(L,'sm')/100*.92;L.sm=L.sm.map((v,i)=>v+(c[i]-v)*a);rgb=L.sm.map(Math.round);}
+      else rgb=hsv(lval(L,'hue'),lval(L,'sat')/100,br);
+      rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:OFF;}}
   const key=cmd.join(','),now=performance.now();if(key===L.last&&now-L.lt<2000)return;
   if(lampSend(L,cmd)){L.last=key;L.lt=now;}}
-{const box=$('lamp'),mk=(id,t,cls)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;if(cls)b.className=cls;return b;};
-  const hdr=(name,btn,stId)=>{const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='dim';lb.textContent=name;const st=document.createElement('span');st.id=stId;st.className='lst';hd.append(lb,btn,st);return hd;};
-  // sound block
-  const ab=document.createElement('div');ab.className='lampsec';const aon=mk('au_on','Микрофон');aon.addEventListener('click',auToggle);const ah=hdr('Звук',aon,'au_st');const anx=mk('au_next','⇄','lall');anx.title='Следующий микрофон / звуковой вход';anx.addEventListener('click',auNext);ah.insertBefore(anx,ah.lastChild);ab.append(ah);
-  const tiles=document.createElement('div');tiles.className='aut';AUN.forEach((n,k)=>{const t=mk('au_b'+k,n,'aub');t.dataset.b=k;t.title='В режиме 🎮: выбери параметр, потом тапни эту полосу';tiles.append(t);});ab.append(tiles);box.append(ab);
+{const box=$('lamp'),mk=(id,t,cls,title)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;if(cls)b.className=cls;if(title)b.title=title;return b;};
+  const hdr=(name,btns,stId)=>{const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='ptitle';lb.textContent=name;const st=document.createElement('span');st.id=stId;st.className='lst';hd.append(lb,...btns,st);return hd;};
+  const row=(cls,...k)=>{const r=document.createElement('div');r.className='lampm '+(cls||'');r.append(...k);return r;};
+  const lab=t=>{const e=document.createElement('span');e.className='dim';e.textContent=t;return e;};
+  // Sound panel
+  const ab=document.createElement('div');ab.className='lampsec pnl';const aon=mk('au_on','Микрофон'),anx=mk('au_next','⇄','lall','Следующий микрофон / звуковой вход');
+  aon.addEventListener('click',auToggle);anx.addEventListener('click',auNext);ab.append(hdr('Звук',[aon,anx],'au_st'));
+  const grid=document.createElement('div');grid.className='aut';
+  SRCN.forEach((n,k)=>{const col=document.createElement('div');col.className='auc';
+    const tl=mk(k<4?'au_b'+k:'au_tak',n,k<4?'aub':'aub tak',k<4?'Полоса звука. В режиме 🎮: выбери параметр, потом тапни её':'Такт по BPM — работает и без микрофона');if(k<4)tl.dataset.b=k;
+    const lr=document.createElement('div');lr.className='aul';
+    LAMPS.forEach((L,qi)=>{const b=mk('au_l'+(qi+1)+'_'+k,'Л'+(qi+1),'aulb','Лампа '+(qi+1)+' реагирует на «'+n+'»');b.addEventListener('click',()=>{L.band=L.band===k?-1:k;lSave(L);lampsUI();});lr.append(b);});
+    col.append(tl,lr);grid.append(col);});
+  ab.append(grid);box.append(ab);
   addSlider(ab,'au_thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct,nr:1,g:1});
   addSlider(ab,'au_rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
-  LAMPS.forEach((L,li)=>{const sec=document.createElement('div');sec.className='lampsec';sec.id=L.p+'box';
-    const cb=mk(L.p+'conn','Подключить');cb.addEventListener('click',()=>lampConn(L));const hd=hdr(L.n,cb,L.p+'st');const ax=mk(L.p+'all','🔍 все','lall');ax.title='Показать все Bluetooth-устройства вокруг, без фильтра по названию';ax.addEventListener('click',()=>lampConn(L,true));hd.insertBefore(ax,hd.lastChild);sec.append(hd);
-    if(li===1){const lk=mk('lamp2_link','= Лампа 1','lk');lk.title='Лампа 2 повторяет всё за лампой 1';lk.addEventListener('click',()=>{LLINK=!LLINK;try{localStorage.setItem('kh_llink',LLINK?1:0);}catch(_){}LAMPS[1].last='';lampsUI();});hd.append(lk);}
-    const mr=document.createElement('div');mr.className='lampm';LMODES.forEach((n,k)=>{const b=mk(L.p+'m'+k,n);b.addEventListener('click',()=>lampMode(L,k));mr.append(b);});
-    const nx=mk(L.p+'next','▸');nx.title='Следующий режим';nx.addEventListener('click',()=>lampMode(L,(L.mode+1)%LMODES.length));mr.append(nx);sec.append(mr);box.append(sec);
-    addSlider(sec,L.p+'br',{n:'Яркость',min:0,max:100,v:60,step:5,f:fPct,nr:1,g:1});
-    addSlider(sec,L.p+'k',{n:'Тепло',min:0,max:100,v:50,step:5,f:v=>v<50?'холод '+(50-v)*2+'%':v>50?'тепло '+(v-50)*2+'%':'нейтр.',nr:1,g:1});
-    addSlider(sec,L.p+'hue',{n:'Оттенок',min:0,max:359,v:li?190:280,step:5,f:v=>v+'°',dial:1,nr:1,g:1});
-    addSlider(sec,L.p+'sat',{n:'Насыщ.',min:0,max:100,v:100,step:5,f:fPct,nr:1,g:1});
-    addSlider(sec,L.p+'sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
-    addSlider(sec,L.p+'fl',{n:'Вспышка',min:5,max:100,v:35,step:5,f:fPct,nr:1,g:1});
-    addSlider(sec,L.p+'band',{n:'Полоса',min:0,max:3,v:0,step:1,f:v=>AUN[v],nr:1,g:1});
-    const rxr=document.createElement('div');rxr.className='lampm lrx';rxr.id=L.p+'rxrow';const rl=document.createElement('span');rl.className='dim';rl.textContent='Реакция';rxr.append(rl);
-    [['Плавно','яркость идёт за звуком'],['Вкл/выкл','громко — горит, тихо — гаснет']].forEach(([n,tt],k)=>{const b=mk(L.p+'rx'+k,n);b.title=tt;b.addEventListener('click',()=>{L.rx=k;lxSave(L);lampsUI();});rxr.append(b);});sec.append(rxr);
-    addSlider(sec,L.p+'thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct,nr:1,g:1});
-    addSlider(sec,L.p+'rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
-    LRND.forEach(k=>{const b=mk(L.p+k+'_r','R','rb');b.title='Случайно на каждый удар (режимы Вспышки и Звук)';b.addEventListener('click',()=>{L.rnd[k]=!L.rnd[k];lxSave(L);lampsUI();});S[L.p+k].row.lastChild.replaceWith(b);});
-    try{const x=JSON.parse(localStorage.getItem('kh_lx'+L.p)||'null');if(x){L.rx=x.rx||0;Object.assign(L.rnd,x.rnd||{});}}catch(_){}
-    try{const lm=localStorage.getItem('kh_lmode'+L.p);if(lm!==null&&+lm>=0&&+lm<LMODES.length)L.mode=+lm;}catch(_){}});
-  try{LLINK=localStorage.getItem('kh_llink')==='1';}catch(_){}
-  auUI();lampsUI();setInterval(()=>LAMPS.forEach(lampTick),70);}
+  // Lamp panels
+  LAMPS.forEach((L,li)=>{const sec=document.createElement('div');sec.className='lampsec pnl';sec.id=L.p+'box';
+    const cb=mk(L.p+'conn','Подключить'),ax=mk(L.p+'all','🔍 все','lall','Показать все Bluetooth-устройства вокруг, без фильтра по названию');
+    cb.addEventListener('click',()=>lampConn(L));ax.addEventListener('click',()=>lampConn(L,true));sec.append(hdr(L.n,[cb,ax],L.p+'st'));
+    const pw=mk(L.p+'pow','Вкл','','Включить / погасить лампу');pw.addEventListener('click',()=>{L.on=!L.on;lSave(L);lampsUI();});
+    const wh=mk(L.p+'wh','Белый','','Белый свет: яркость и тепло');wh.addEventListener('click',()=>{L.white=true;lSave(L);lampsUI();});
+    const co=mk(L.p+'col','Цвет','','Цветной свет: оттенок и насыщенность');co.addEventListener('click',()=>{L.white=false;lSave(L);lampsUI();});
+    const pc=mk(L.p+'pic','Картинка','','Цвет картинки: лампа берёт средний цвет визуализации');pc.addEventListener('click',()=>{L.pic=!L.pic;if(L.pic)L.white=false;lSave(L);lampsUI();});
+    const r1=row('',pw,wh,co,pc);
+    if(li===1){const lk=mk('lamp2_link','= Л1','lk','Лампа 2 повторяет всё за лампой 1');lk.addEventListener('click',()=>{LLINK=!LLINK;try{localStorage.setItem('kh_llink',LLINK?1:0);}catch(_){}LAMPS[1].last='';lampsUI();});r1.append(lk);}
+    sec.append(r1);
+    const sb=mk(L.p+'srcb','Источник: нет ▸','srcb','На что реагирует лампа — то же, что кнопки Л1/Л2 в панели «Звук»');sb.addEventListener('click',()=>{L.band=L.band>=4?-1:L.band+1;lSave(L);lampsUI();});
+    const x0=mk(L.p+'rx0','Плавно','','Яркость повторяет громкость: громче — ярче, потом гаснет'),x1=mk(L.p+'rx1','Вкл/выкл','','Громко — горит полностью, тихо — погашена');
+    x0.addEventListener('click',()=>{L.rx=0;lSave(L);lampsUI();});x1.addEventListener('click',()=>{L.rx=1;lSave(L);lampsUI();});
+    sec.append(row('srcrow',sb));const rr=row('lrx',lab('Реакция'),x0,x1);rr.id=L.p+'rxrow';sec.append(rr);
+    lampSlider(sec,L.p+'br',{n:'Яркость',min:0,max:100,v:60,step:5,f:fPct,rr:1,dr:[30,100]});
+    lampSlider(sec,L.p+'k',{n:'Тепло',min:0,max:100,v:50,step:5,f:v=>v<50?'холод '+(50-v)*2+'%':v>50?'тепло '+(v-50)*2+'%':'нейтр.',rr:1,dr:[20,80]});
+    lampSlider(sec,L.p+'hue',{n:'Оттенок',min:0,max:355,v:li?190:280,step:5,f:v=>v+'°',rr:1,dr:[180,320]});
+    lampSlider(sec,L.p+'sat',{n:'Насыщ.',min:0,max:100,v:100,step:5,f:fPct,rr:1,dr:[60,100]});
+    lampSlider(sec,L.p+'sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct});
+    lampSlider(sec,L.p+'thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct});
+    lampSlider(sec,L.p+'rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct});
+    box.append(sec);});
+  auUI();lampsUI();setInterval(()=>LAMPS.forEach(lampTick),70);
+  setInterval(()=>{const x=t*bpm()/60,ph=x-Math.floor(x),e=$('au_tak');if(e)e.style.setProperty('--l',(ph<.25?1-ph/.25:0).toFixed(2));},70);}
 requestAnimationFrame(frame);
 })();
 </script>
