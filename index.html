@@ -297,7 +297,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.23</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.24</div>
   </div>
 </div>
 
@@ -1434,15 +1434,19 @@ function lampUI(L){const st=$(L.p+'st'),cb=$(L.p+'conn'),on=!!L.ch,S0=lsrc(L),lk
   if(L===LAMPS[1])pr('lamp2_link',LLINK);
   for(let b=0;b<5;b++)LAMPS.forEach((Q,qi)=>pr('au_l'+(qi+1)+'_'+b,Q.band===b));}
 const lampsUI=()=>LAMPS.forEach(lampUI);
-async function lampConn(L,all){L.err='';if(all&&L.ch){try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;}if(all)L.dev=null;
+// Reconnect: a dropped lamp is retried every few seconds without the chooser; pressing «Отключить» stops it.
+async function lampOpen(L,d){$(L.p+'st').textContent='подключаю '+(d.name||'')+'…';
+  const srv=await d.gatt.connect();let sv;try{sv=await srv.getPrimaryService(LSVC);}catch(_){try{d.gatt.disconnect();}catch(__){}throw new Error('у «'+(d.name||'устройства')+'» нет канала лампы YN360 — выбрано не то устройство');}
+  L.ch=await sv.getCharacteristic(LCHR);L.last='';L.err='';L.want=true;try{localStorage.setItem('kh_ldev'+L.p,d.id||'');}catch(_){}}
+function lampAttach(L,d){if(L.dev===d)return;L.dev=d;d.addEventListener('gattserverdisconnected',()=>{L.ch=null;L.busy=false;lampUI(L);if(L.want)lampRetry(L);});}
+function lampRetry(L){clearTimeout(L.rt);L.tries=(L.tries||0)+1;L.err='связь пропала — переподключаю… ('+L.tries+')';lampUI(L);
+  L.rt=setTimeout(async()=>{if(!L.want||L.ch||!L.dev)return;try{await lampOpen(L,L.dev);L.tries=0;lampUI(L);}catch(_){lampRetry(L);}},Math.min(10000,1500+L.tries*1000));}
+async function lampConn(L,all){L.err='';clearTimeout(L.rt);L.tries=0;if(all&&L.ch){L.want=false;try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;}if(all)L.dev=null;
   if(!navigator.bluetooth){L.err='Bluetooth в браузере выключен: brave://flags → Web Bluetooth API → Enabled';lampUI(L);return;}
-  if(L.ch){try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;lampUI(L);return;}
+  if(L.ch){L.want=false;try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;lampUI(L);return;}
   try{const d=L.dev||await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true,optionalServices:[LSVC]}:{filters:[{namePrefix:'YN'},{namePrefix:'Yongnuo'},{namePrefix:'YONGNUO'},{services:[LSVC]}],optionalServices:[LSVC]});
-    if(!L.dev){L.dev=d;d.addEventListener('gattserverdisconnected',()=>{L.ch=null;lampUI(L);});}
-    $(L.p+'st').textContent='подключаю '+(d.name||'')+'…';
-    const srv=await d.gatt.connect();let sv;try{sv=await srv.getPrimaryService(LSVC);}catch(_){try{d.gatt.disconnect();}catch(__){}L.dev=null;throw new Error('у «'+(d.name||'устройства')+'» нет канала лампы YN360 — выбрано не то устройство');}
-    L.ch=await sv.getCharacteristic(LCHR);L.last='';}
-  catch(e){L.ch=null;L.err=e&&e.name==='NotFoundError'?'лампа не выбрана — если её нет в списке, жми «🔍 все»':'не вышло: '+((e&&e.message)||'ошибка').slice(0,90);}
+    lampAttach(L,d);try{await lampOpen(L,d);}catch(e){if(/нет канала/.test(e.message||''))L.dev=null;throw e;}}
+  catch(e){L.ch=null;if(L.dev&&!all&&!(e&&e.name==='NotFoundError')){L.err='не отвечает — выключи и включи лампу, или жми «🔍 все»';L.dev=null;lampUI(L);return;}L.err=e&&e.name==='NotFoundError'?'лампа не выбрана — если её нет в списке, жми «🔍 все»':'не вышло: '+((e&&e.message)||'ошибка').slice(0,90);}
   lampUI(L);}
 function lampSend(L,b){if(!L.ch||L.busy)return false;L.busy=true;const a=new Uint8Array(b),c=L.ch;
   const p=c.writeValueWithResponse?c.writeValueWithResponse(a):c.writeValue(a);p.catch(()=>{}).finally(()=>{L.busy=false;});return true;}
@@ -1509,6 +1513,9 @@ function lampTick(L){const S0=lsrc(L),g=lampLevel(L);if(!L.ch)return;let cmd;
     lampSlider(sec,L.p+'rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct});
     box.append(sec);});
   auUI();lampsUI();setInterval(()=>LAMPS.forEach(lampTick),70);
+  (async()=>{try{if(!navigator.bluetooth||!navigator.bluetooth.getDevices)return;const ds=await navigator.bluetooth.getDevices();
+    LAMPS.forEach(L=>{let id='';try{id=localStorage.getItem('kh_ldev'+L.p)||'';}catch(_){}const d=id&&ds.find(x=>x.id===id);if(!d)return;
+      lampAttach(L,d);L.want=true;L.err='ищу '+(d.name||'лампу')+'…';lampUI(L);lampOpen(L,d).then(()=>{L.tries=0;lampUI(L);}).catch(()=>lampRetry(L));});}catch(_){}})();
   setInterval(()=>{const x=t*bpm()/60,ph=x-Math.floor(x),e=$('au_tak');if(e)e.style.setProperty('--l',(ph<.25?1-ph/.25:0).toFixed(2));},70);}
 requestAnimationFrame(frame);
 })();
