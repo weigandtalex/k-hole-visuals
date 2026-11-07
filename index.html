@@ -279,7 +279,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.16</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.17</div>
   </div>
 </div>
 
@@ -984,7 +984,7 @@ let grab=[0,0];const uvOf=e=>{const b=canvas.getBoundingClientRect();return [((e
 function place(e){const s=SRC[ED];if(!s||sel<0)return;const q=uvOf(e);
   s.st.MAN[sel]={x:Math.min(1,Math.max(0,q[0]-grab[0])),y:Math.min(1,Math.max(0,q[1]-grab[1]))};dirty=6;mkSync();}
 var markOff=false;let placing=false;const mkEl=$('mk');
-// Outline of the selected manual fractal, so it can be found before it fires; a tap elsewhere on the picture hides it.
+// Outline of the selected manual fractal. Tap on the picture: frame appears there; tap away from it: frame hides.
 function mkRect(){const s=SRC[ED];if(!s||sel<0||markOff||polyEdit)return null;const st=s.st,m=st.MAN[sel];if(!m)return null;
   const c=st.cv[sel],b=canvas.getBoundingClientRect(),vb=view.getBoundingClientRect(),PWc=b.width/SX,PHc=b.height/SY;
   const L=Math.max(3,Math.abs(c.ca_size===undefined?50:c.ca_size))/100*Math.max(PWc,PHc),ra=SHR[c.ca_shape]||1;let w=ra>=1?L:L*ra,h=ra>=1?L/ra:L;const k=Math.min(1,PWc/w,PHc/h);w*=k;h*=k;
@@ -992,6 +992,8 @@ function mkRect(){const s=SRC[ED];if(!s||sel<0||markOff||polyEdit)return null;co
 function mkSync(){const r=mkRect();mkEl.hidden=!r;if(!r)return;mkEl.style.left=r.x+'px';mkEl.style.top=r.y+'px';mkEl.style.width=r.w+'px';mkEl.style.height=r.h+'px';mkEl.style.setProperty('--mkc','var(--k'+sel+')');}
 setInterval(mkSync,150);
 canvas.addEventListener('pointerdown',e=>{
+  // manual fractal: frame hidden → a tap puts the fractal there and shows the frame (drag on to fine-tune); frame shown → drag inside moves it, a tap outside hides it
+  if(sel>=0&&markOff&&!polyEdit&&SRC[ED]&&SRC[ED].st.MAN[sel]){markOff=false;grab=[0,0];place(e);placing=true;try{canvas.setPointerCapture(e.pointerId);}catch(_){ }return;}
   if(sel>=0&&!markOff){const r=mkRect(),vb=view.getBoundingClientRect(),px=e.clientX-vb.left,py=e.clientY-vb.top,pad=14;
     if(r&&px>=r.x-pad&&px<=r.x+r.w+pad&&py>=r.y-pad&&py<=r.y+r.h+pad){const q=uvOf(e),m=SRC[ED].st.MAN[sel];grab=[q[0]-m.x,q[1]-m.y];placing=true;try{canvas.setPointerCapture(e.pointerId);}catch(_){ }return;}
     markOff=true;mkSync();}
