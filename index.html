@@ -174,6 +174,12 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
   #view{flex:1 1 auto;min-height:0}
   #panel{flex:0 0 380px;max-height:none;border-top:0;border-left:1px solid var(--line)}
 }
+#gp[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
+#gph{font-size:11px;color:var(--haze);padding:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#gph b{color:var(--cr);font-weight:500}
+.gpl .sl,.gpl #glob button,.gpl .bar button{outline:1px dashed rgba(255,255,255,.18);outline-offset:1px}
+.gpsel{outline:2px solid var(--cr)!important;outline-offset:1px}
+.gpb{box-shadow:inset 0 -2px 0 var(--cr)}
 </style>
 </head>
 <body>
@@ -196,7 +202,9 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
       <button id="tap" type="button">Тап</button>
       <button id="rec" type="button" hidden aria-pressed="false" aria-label="Записать видео">● REC</button>
       <button id="full" type="button" aria-label="Во весь экран">⛶</button>
+      <button id="gp" type="button" aria-pressed="false" aria-label="Геймпад: привязать управление">🎮</button>
     </div>
+    <div id="gph" hidden></div>
     <div id="glob"></div>
     <div class="bar" id="srcbar" hidden>
       <span id="srchead">демо-сцена</span>
@@ -225,7 +233,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.04</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.05</div>
   </div>
 </div>
 
@@ -528,7 +536,7 @@ function addSlider(parent,id,spec){if(spec.sh)spec.sh=Object.assign({},spec,spec
   const el=mkR('');el.id=id;
   const out=document.createElement('output');
   const mk=(t,lab,cls)=>{const b=document.createElement('button');b.type='button';b.className=cls||'st';b.textContent=t;b.setAttribute('aria-label',spec.n+': '+lab);return b;};
-  const dn=mk('◂','меньше'),up=mk('▸','больше');
+  const dn=mk('◂','меньше'),up=mk('▸','больше');dn.id=id+'_dn';up.id=id+'_up';out.id=id+'_o';
   const o={el,out,spec,id,row,up};
   const rngMax=id==='ca_shape'?18:spec.max,isRate=id==='ca_out'||id==='ca_rate';
   o.fit=st=>{name.textContent=E().n;row.hidden=!!(spec.only&&spec.only!==TAB);if(o.box)o.box.hidden=row.hidden;if(!isRate&&!spec.sh)return;const h=false,a=h?101:E().min,b=h?250:E().max;[el,o.lo,o.hi].forEach(e=>{if(e){e.min=a;e.max=b;}});};
@@ -996,6 +1004,61 @@ function frame(now){
   pi=ai;
 }
 loadPanel();resize();setPlay(playing);{const v=$('ver');if(v&&v.textContent.indexOf('_BUILD_')>=0)v.hidden=true;}
+
+// ---- Gamepad: learn mode. Tap a control, then move a stick / press a button.
+const GP={map:[],learn:false,sel:null,base:null,prev:{},hold:{},t:0};
+try{GP.map=JSON.parse(localStorage.getItem('kh_gp')||'[]')||[];}catch(_){GP.map=[];}
+const gpSave=()=>{try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));}catch(_){}};
+const gpPads=()=>{try{return [...(navigator.getGamepads?navigator.getGamepads():[])].filter(Boolean);}catch(_){return [];}};
+const BN=['✕/A','○/B','□/X','△/Y','L1','R1','L2','R2','Share','Options','L3','R3','↑','↓','←','→','PS','Тачпад'];
+const AN=['левый стик ↔','левый стик ↕','правый стик ↔','правый стик ↕'];
+const gpName=m=>m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
+const gpEl=id=>document.getElementById(id);
+const gpLabel=el=>{if(!el)return '?';const r=el.closest('.sl');const n=r?r.querySelector('label').textContent:'';
+  if(el.type==='range')return n;if(el.id.endsWith('_dn'))return n+' ◂';if(el.id.endsWith('_up'))return n+' ▸';if(el.id.endsWith('_r'))return n+' R';if(el.id.endsWith('_d'))return n+' D';
+  return (n?n+' ':'')+(el.getAttribute('aria-label')||el.textContent||el.id).trim().slice(0,24);};
+function gpMarks(){document.querySelectorAll('.gpb').forEach(e=>e.classList.remove('gpb'));GP.map.forEach(m=>{const e=gpEl(m.id);if(e)(e.type==='range'?e.closest('.sl')||e:e).classList.add('gpb');});}
+function gpHint(msg){const h=$('gph');h.hidden=!GP.learn;if(!GP.learn)return;const pads=gpPads();
+  h.innerHTML='';const t=document.createElement('span');
+  t.innerHTML=msg||(!pads.length?'Геймпад не виден — нажми на нём любую кнопку. ':'<b>'+pads[0].id.replace(/\(.*?\)/g,'').trim().slice(0,28)+'</b> · ')+(GP.sel?'Теперь двинь стик или нажми кнопку для «'+gpLabel(GP.sel)+'»':'Тапни параметр или кнопку на панели');
+  const cl=document.createElement('button');cl.type='button';cl.textContent='Стереть все';cl.addEventListener('click',e=>{e.stopPropagation();GP.map=[];gpSave();gpMarks();gpHint();});
+  const ls=document.createElement('span');ls.style.width='100%';ls.style.opacity='.75';ls.textContent=GP.map.map(m=>gpName(m)+' → '+gpLabel(gpEl(m.id))).join(' · ');
+  h.append(t,cl,ls);}
+function gpPick(e){if(!GP.learn)return;const tg=e.target;if(tg.closest('#gp,#gph'))return;if(!tg.closest('#panel'))return;
+  let el=null;const r=tg.closest('.sl');
+  if(tg.closest('button[id],output[id].pb'))el=tg.closest('button[id],output[id].pb');
+  else if(r)el=r.querySelector('input[type=range][id]');
+  else if(tg.closest('[id]')&&/^(BUTTON|INPUT)$/.test(tg.closest('[id]').tagName))el=tg.closest('[id]');
+  if(!el)return;e.preventDefault();e.stopPropagation();
+  if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=el;el.classList.add('gpsel');GP.base=null;gpHint();}
+document.addEventListener('pointerdown',gpPick,true);
+['mousedown','touchstart'].forEach(t=>document.addEventListener(t,e=>{if(GP.learn&&e.target.closest('#panel .sl')&&!e.target.closest('#gph'))e.preventDefault();},{capture:true,passive:false}));
+document.addEventListener('click',e=>{if(GP.learn&&!e.target.closest('#gp,#gph')&&(e.target.closest('.sl')||e.target.closest('button[id]')))e.stopPropagation(),e.preventDefault();},true);
+document.addEventListener('input',e=>{if(GP.learn&&e.isTrusted&&e.target.closest('.sl'))e.stopPropagation();},true);
+$('gp').addEventListener('click',()=>{GP.learn=!GP.learn;$('gp').setAttribute('aria-pressed',GP.learn);document.body.classList.toggle('gpl',GP.learn);if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=null;gpHint();});
+window.addEventListener('gamepadconnected',()=>gpHint());window.addEventListener('gamepaddisconnected',()=>gpHint());
+const gpSet=(el,v)=>{v=Math.min(+el.max,Math.max(+el.min,v));if(Math.abs(v-(+el.value))<1e-9)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));};
+function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)return;const pad=gpPads()[0];if(!pad)return;
+  const dt=GP.t?Math.min(.1,(now-GP.t)/1000):0;GP.t=now;
+  const ax=[...pad.axes],bt=pad.buttons.map(b=>typeof b==='object'?b.value:+b);
+  if(GP.learn){if(!GP.sel){GP.base=null;return;}
+    if(!GP.base){GP.base={ax,bt};return;}
+    let hit=null;ax.forEach((a,i)=>{if(!hit&&Math.abs(a-GP.base.ax[i])>.55)hit={t:'a',i,inv:a<GP.base.ax[i]?1:0};});
+    if(!hit)bt.forEach((b,i)=>{if(!hit&&b>.5&&GP.base.bt[i]<=.5)hit={t:'b',i};});
+    if(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
+    return;}
+  GP.map.forEach(m=>{const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
+    if(el.type==='range'){const mn=+el.min,mx=+el.max;
+      if(m.t==='a'){let a=m.inv?-v:v;if(Math.abs(a)<.15){if(GP.acc)GP.acc[m.id]=0;return;}
+        GP.acc=GP.acc||{};const sp=Math.sign(a)*Math.pow((Math.abs(a)-.15)/.85,2)*(mx-mn)*.9*dt;GP.acc[m.id]=(GP.acc[m.id]||0)+sp;
+        const st=+(S[m.id]&&S[m.id].spec.step)||1,n=Math.trunc(GP.acc[m.id]/st)*st;if(n){GP.acc[m.id]-=n;gpSet(el,+el.value+n);}}
+      else{ // button / trigger: momentary — pressure pushes from the resting value up to max; release returns
+        if(v>.05){if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k],st=+(S[m.id]&&S[m.id].spec.step)||1;gpSet(el,Math.round((b0+v*(mx-b0))/st)*st);}
+        else if(GP.hold[k]!==undefined){gpSet(el,GP.hold[k]);delete GP.hold[k];}}}
+    else{const on=m.t==='a'?Math.abs(v)>.6:v>.5,was=m.t==='a'?Math.abs(pv)>.6:pv>.5;
+      if(on&&!was){el.click();GP.rep=GP.rep||{};GP.rep[k]=now+400;}
+      else if(on&&/_(up|dn)$/.test(m.id)&&GP.rep&&now>GP.rep[k]){el.click();GP.rep[k]=now+70;}}});}
+requestAnimationFrame(gpLoop);setTimeout(gpMarks,500);
 requestAnimationFrame(frame);
 })();
 </script>
