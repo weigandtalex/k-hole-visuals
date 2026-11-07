@@ -190,6 +190,8 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .aut{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.aub{--l:0;position:relative;overflow:hidden;padding:8px 2px;font-size:11px}
 .aub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(var(--l)*100%);background:var(--cr);opacity:.45;pointer-events:none}
 .gpl .aub{outline:1px dashed var(--cr)}
+.allh{font-size:10px;padding:2px}.allh[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
+body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
 .lrx .dim{flex:0 0 58px;font-size:11px;align-self:center}.lrx button[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 .lampsec .sl .rb[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #out[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
@@ -281,7 +283,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.19</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.20</div>
   </div>
 </div>
 
@@ -584,7 +586,15 @@ function slotUI(){const ce=SRC[ED]?SRC[ED].st.ce:0;sel=MAN[ce]?ce:-1;markOff=fal
   if(SLOT.head)SLOT.head.style.setProperty('--k','var(--k'+ce+')');
   ALL.forEach(o=>{if(PCK[o.id])o.row.style.setProperty('--th','var(--k'+ce+')');});if(IO)IO.row.style.setProperty('--th','var(--k'+ce+')');
   if(SLOT.head)SLOT.head.textContent='Каскад '+(ce+1)+(ON[ce]?'':' · выключен')+(MAN[ce]?' · место вручную: ткни в картинку':'');}
-function commit(o){if(!o.spec.g&&SRC[ED]){vOf(SRC[ED].st,o.id)[o.id]=+o.el.value;SRC[ED].mdirty=true;if(o.id==='ca_shape')polySync(true);}}
+
+// ---- "All" hold: while held, direction goes to every switched-on fractal; on release each gets back its own direction and random flag
+const ALLH={on:false,st:null,saved:[]};
+function allHold(on){const b=$('ca_all');if(on===ALLH.on)return;
+  if(on){const s=SRC[ED];if(!s)return;const st=s.st;ALLH.st=st;ALLH.saved=[];for(let j=0;j<8;j++)if(st.ON[j])ALLH.saved.push({j,dir:st.cv[j].ca_dir,r:st.cr[j].ca_dir});ALLH.on=true;}
+  else{const st=ALLH.st;if(st)ALLH.saved.forEach(o=>{if(o.dir===undefined)delete st.cv[o.j].ca_dir;else st.cv[o.j].ca_dir=o.dir;st.cr[o.j].ca_dir=o.r;});ALLH.on=false;ALLH.st=null;ALLH.saved=[];if(SRC[ED])SRC[ED].mdirty=true;loadPanel();}
+  if(b){b.setAttribute('aria-pressed',ALLH.on);}document.body.classList.toggle('allh-on',ALLH.on);dirty=6;}
+function commit(o){if(ALLH.on&&o.id==='ca_dir'&&ALLH.st){ALLH.saved.forEach(q=>{ALLH.st.cv[q.j].ca_dir=+o.el.value;ALLH.st.cr[q.j].ca_dir=false;});if(SRC[ED])SRC[ED].mdirty=true;return;}
+if(!o.spec.g&&SRC[ED]){vOf(SRC[ED].st,o.id)[o.id]=+o.el.value;SRC[ED].mdirty=true;if(o.id==='ca_shape')polySync(true);}}
 const PLN=[0,1,2,4,8];function plEff(v){const o=v.ca_out,bars=o>=100?secOf(o)/(240/bpm()):BARS[o],mx=bars/2+1e-6;let p=v.plays||0;while(p>0&&PLN[p]>mx)p--;return p;}
 const plOf=st=>{const c=st.cv[st.ce];return {ca_out:c.ca_out===undefined?(st.v.ca_out===undefined?6:st.v.ca_out):c.ca_out,plays:c.plays===undefined?(st.v.plays||0):c.plays};};
 function plUI(out){const s=SRC[ED],p=s?plEff(plOf(s.st)):0;out.dataset.n=p?'×'+PLN[p]:'';}
@@ -706,6 +716,9 @@ DEV[0].p.forEach(sp=>addSlider(dbox,'ca_'+sp.k,sp));{const bx=document.createEle
     const rb=document.createElement('button');rb.type='button';rb.id='slotR';rb.textContent='R';rb.setAttribute('aria-label','Случайное число работающих штук');
     rb.addEventListener('click',()=>{RND=!RND;if(SRC[ED])SRC[ED].st.RND=RND;slotUI();dirty=6;});rb.classList.add('rcnt');sl.append(rb);SLOT.R=rb;
     row2.forEach(a=>sl.append(a));
+    {const ab=document.createElement('button');ab.type='button';ab.id='ca_all';ab.className='allh';ab.textContent='Все';ab.title='Держи — направление задаётся всем включённым фракталам сразу; отпустил — всё вернулось';ab.setAttribute('aria-pressed','false');
+      ab._hold=on=>allHold(on);ab.addEventListener('pointerdown',e=>{if(GP.learn)return;allHold(true);try{ab.setPointerCapture(e.pointerId);}catch(_){}});
+      const up=()=>{if(!GP.learn)allHold(false);};ab.addEventListener('pointerup',up);ab.addEventListener('pointercancel',up);ab.addEventListener('lostpointercapture',up);sl.append(ab);}
     dbox.insertBefore(sl,dbox.firstChild);
     $('reset').setAttribute('aria-label','Сбросить настройки открытой вкладки к стартовым');
     // Preset = everything a picture carries: all three tabs, eight numbers each, manual places and drawn outlines.
@@ -1079,6 +1092,7 @@ const AN=['левый стик ↔','левый стик ↕','правый ст
 const isDial=el=>!!(el&&S[el.id]&&S[el.id].spec.dial);
 // a stick as a 2D pointer (direction) occupies both its axes; drop anything that overlaps
 const gpClash=(m,h)=>{const ax=x=>x.t==='s2'?[x.i,x.i+1]:x.t==='a'?[x.i]:null,A=ax(m),B=ax(h);if(A&&B)return A.some(i=>B.includes(i));return m.t===h.t&&m.i===h.i&&m.t!=='m';};
+const gpRowHold=m=>{const e=gpEl(m.id);return !!(e&&e._hold);};
 const gpName=m=>m.t==='au'?'Звук: '+AUN[m.i].toLowerCase():m.t==='s2'?(m.i===0?'левый':'правый')+' стик ◎':m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
 const gpEl=id=>document.getElementById(id);
 const gpLabel=el=>{if(!el)return '?';const r=el.closest('.sl');const n=r?r.querySelector('label').textContent:'';
@@ -1130,7 +1144,7 @@ function midiMsg(name,d){const st=d[0]&0xf0,ch=d[0]&15,n=d[1],v=d.length>2?d[2]:
     gpBind({t:'m',k:kind==='c'?'c':'n',ch,n,dev,mode});return;}
   GP.map.forEach(m=>{if(m.t!=='m'||m.n!==nn||m.ch!==ch||!midiMatch(m,dev))return;if(m.k==='p'?kind!=='p':m.k==='c'?kind!=='c':(kind!=='n'&&kind!=='o'))return;if(kind==='p'){const el=gpEl(m.id);if(el&&el.type==='range'){const mn=+el.min,mx=+el.max,stp=+(S[m.id]&&S[m.id].spec.step)||1;gpSet(el,Math.round((mn+v2/127*(mx-mn))/stp)*stp);}return;}
     const el=gpEl(m.id);if(!el)return;const press=kind==='n'||(kind==='c'&&v>0),k='m'+m.k+n+'_'+ch;
-    if(el.type!=='range'){if(press&&m.mode!=='rel')el.click();else if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[k]=(GP.macc[k]||0)+(v<64?v:v-128);if(Math.abs(GP.macc[k])>=4){el.click();GP.macc[k]=0;}}return;}
+    if(el.type!=='range'){if(el._hold&&m.mode!=='rel'){el._hold(press);return;}if(press&&m.mode!=='rel')el.click();else if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[k]=(GP.macc[k]||0)+(v<64?v:v-128);if(Math.abs(GP.macc[k])>=4){el.click();GP.macc[k]=0;}}return;}
     const mn=+el.min,mx=+el.max,stp=+(S[m.id]&&S[m.id].spec.step)||1;
     if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[m.id]=(GP.macc[m.id]||0)+(v<64?v:v-128)*(mx-mn)/127;const q=Math.trunc(GP.macc[m.id]/stp)*stp;if(q){GP.macc[m.id]-=q;gpSet(el,+el.value+q);}}
     else if(m.mode==='abs')gpSet(el,Math.round((mn+v/127*(mx-mn))/stp)*stp);
@@ -1184,17 +1198,18 @@ function pushLive(k,n,v){if(!GP.psvg||!gpVis())return;const key=pkey(k==='o'?'n'
   if(!g)return;if(k==='c'&&PUSHENC.includes(n)){g.classList.add('pr');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('pr'),160);return;}
   g.classList.toggle('pr',k!=='o'&&v>0);}
 function gpRow(m,num){const r=document.createElement('div'),el=gpEl(m.id),rng=el&&el.type==='range';
-  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='au'?(rng?' · громче — выше, тихо — вернулось':' · жмёт на удар'):m.t==='s2'?' · куда наклонил — туда и направление (у открытого фрактала)':m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
+  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(gpRowHold(m)?' · держишь — работает, отпустил — вернулось':m.t==='au'?(rng?' · громче — выше, тихо — вернулось':' · жмёт на удар'):m.t==='s2'?' · куда наклонил — туда и направление (у открытого фрактала)':m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
   const x=document.createElement('button');x.type='button';x.textContent='снять';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();if(GP.info)GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);return r;}
 // ---- Control presets: 4 slots in the browser + a file that survives anything
 let GPP=[null,null,null,null];try{const a=JSON.parse(localStorage.getItem('kh_gpp')||'null');if(Array.isArray(a))GPP=a.concat([null,null,null,null]).slice(0,4);}catch(_){}
 const gppSave=()=>{try{localStorage.setItem('kh_gpp',JSON.stringify(GPP));}catch(_){}};
 // Standard layout, like a game's default controls. Preset 1 gets it (merged, once); a fresh setup starts with it.
-const GPSTD=[{t:'s2',i:2,id:'ca_dir'}];
-{let done=false;try{done=localStorage.getItem('kh_std')==='1';}catch(_){}
-  if(!done){const merge=a=>{a=(a||[]).slice();GPSTD.forEach(h=>{a=a.filter(m=>!gpClash(m,h));a.unshift(Object.assign({},h));});return a;};
-    GPP[0]=merge(GPP[0]);if(!GP.map.some(m=>GPSTD.some(h=>gpClash(m,h))))GP.map=merge(GP.map);
-    gppSave();try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));localStorage.setItem('kh_std','1');}catch(_){}}}
+const GPSTD=[{t:'s2',i:2,id:'ca_dir'},{t:'b',i:6,id:'ca_all'}];
+{let n=0;try{n=+localStorage.getItem('kh_std')||0;}catch(_){}
+  if(n<GPSTD.length){const add=GPSTD.slice(n);
+    GPP[0]=(GPP[0]||[]).slice();add.forEach(h=>{GPP[0]=GPP[0].filter(m=>!gpClash(m,h));GPP[0].push(Object.assign({},h));});
+    add.forEach(h=>{if(!GP.map.some(m=>gpClash(m,h)))GP.map.push(Object.assign({},h));});
+    gppSave();try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));localStorage.setItem('kh_std',String(GPSTD.length));}catch(_){}}}
 function gpExport(){const blob=new Blob([JSON.stringify({kh:'controls',v:1,map:GP.map,presets:GPP},null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='k-hole-controls.json';document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
 function gpImport(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(Array.isArray(o.map))GP.map=o.map;if(Array.isArray(o.presets))GPP=o.presets.concat([null,null,null,null]).slice(0,4);
@@ -1255,7 +1270,7 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length&
     return;}
   GP.map.forEach(m=>{if(m.t!=='s2')return;const el=gpEl(m.id);if(!el)return;const x=ax[m.i]||0,y=ax[m.i+1]||0;if(Math.hypot(x,y)<.55)return;
     const st=+(S[m.id]&&S[m.id].spec.step)||1;let d=Math.round((Math.atan2(x,-y)*180/Math.PI)/st)*st;d=((d%360)+360)%360;if(d>+el.max)d=0;
-    const src=SRC[ED];if(src){try{const r=rOf(src.st,m.id);if(r[m.id]){r[m.id]=false;rUI();}}catch(_){}}
+    const src=SRC[ED];if(src&&!ALLH.on){try{const r=rOf(src.st,m.id);if(r[m.id]){r[m.id]=false;rUI();}}catch(_){}}
     if(+el.value!==d){el.value=d;el.dispatchEvent(new Event('input',{bubbles:true}));}});
   GP.map.forEach(m=>{if(m.t==='m'||m.t==='s2'||m.t==='au')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
     if(el.type==='range'){const mn=+el.min,mx=+el.max;
@@ -1266,6 +1281,7 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length&
         if(v>.05){if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k],st=+(S[m.id]&&S[m.id].spec.step)||1;gpSet(el,Math.round((b0+v*(mx-b0))/st)*st);}
         else if(GP.hold[k]!==undefined){gpSet(el,GP.hold[k]);delete GP.hold[k];}}}
     else{const on=m.t==='a'?Math.abs(v)>.6:v>.5,was=m.t==='a'?Math.abs(pv)>.6:pv>.5;
+      if(el._hold){if(on!==was)el._hold(on);return;}
       if(on&&!was){el.click();GP.rep=GP.rep||{};GP.rep[k]=now+400;}
       else if(on&&/_(up|dn)$/.test(m.id)&&GP.rep&&now>GP.rep[k]){el.click();GP.rep[k]=now+70;}}});}
 requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},500);
