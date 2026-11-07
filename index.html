@@ -243,7 +243,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.06</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.07</div>
   </div>
 </div>
 
@@ -1022,7 +1022,7 @@ const gpSave=()=>{try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));}catc
 const gpPads=()=>{try{return [...(navigator.getGamepads?navigator.getGamepads():[])].filter(Boolean);}catch(_){return [];}};
 const BN=['✕/A','○/B','□/X','△/Y','L1','R1','L2','R2','Share','Options','L3','R3','↑','↓','←','→','PS','Тачпад'];
 const AN=['левый стик ↔','левый стик ↕','правый стик ↔','правый стик ↕'];
-const gpName=m=>m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
+const gpName=m=>m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
 const gpEl=id=>document.getElementById(id);
 const gpLabel=el=>{if(!el)return '?';const r=el.closest('.sl');const n=r?r.querySelector('label').textContent:'';
   if(el.type==='range')return n;if(el.id.endsWith('_dn'))return n+' ◂';if(el.id.endsWith('_up'))return n+' ▸';if(el.id.endsWith('_r'))return n+' R';if(el.id.endsWith('_d'))return n+' D';
@@ -1052,8 +1052,33 @@ function gpBuild(){const svg=sv('svg',{viewBox:'0 -16 400 236',class:'gpsvg',rol
   Object.keys(PADT).forEach(key=>{const [x,y,an]=PADT[key];GP.caps[key]=sv('text',{x,y,'text-anchor':an,class:'gpcap'},svg);});
   return svg;}
 const gpShort=t=>t.length>11?t.slice(0,10)+'…':t;
+// ---- MIDI (Push 2 or any controller), same learn mode
+const PUSHENC=[14,15,71,72,73,74,75,76,77,78,79];
+function midiName(m){const P=/push/i.test(m.dev||''),n=m.n;
+  if(P){if(m.k==='c'){if(n>=71&&n<=78)return 'Энкодер '+(n-70);if(n===79)return 'Энкодер мастер';if(n===14)return 'Энкодер темп';if(n===15)return 'Энкодер swing';return 'Кнопка CC'+n;}
+    if(n>=36&&n<=99)return 'Пэд '+(Math.floor((n-36)/8)+1)+'·'+((n-36)%8+1);}
+  return (m.k==='c'?'CC':'Нота ')+n;}
+function midiInit(){if(GP.midi||GP.midiReq)return;if(!navigator.requestMIDIAccess){GP.midiErr='MIDI в этом браузере нет';return;}GP.midiReq=1;
+  navigator.requestMIDIAccess().then(a=>{GP.midi=a;const hook=()=>{GP.mnames=[];a.inputs.forEach(inp=>{GP.mnames.push(inp.name);inp.onmidimessage=e=>midiMsg(inp.name,e.data);});gpHint();};hook();a.onstatechange=hook;})
+   .catch(()=>{GP.midiErr='MIDI не разрешён браузером';gpHint();});}
+function gpBind(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i&&m.n===hit.n&&m.ch===hit.ch&&m.k===hit.k&&m.dev===hit.dev));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
+function midiMsg(name,d){const st=d[0]&0xf0,ch=d[0]&15,n=d[1],v=d.length>2?d[2]:0;let kind;
+  if(st===0xB0)kind='c';else if(st===0x90&&v>0)kind='n';else if(st===0x80||st===0x90)kind='o';else return;
+  const push=/push/i.test(name);if(push&&kind!=='c'&&n<=10)return; // encoder touch notes
+  const dev=name.slice(0,40);
+  if(GP.learn){if(!GP.sel||kind==='o'||(kind==='c'&&v===0))return;
+    const mode=kind==='n'?'mom':push?(PUSHENC.includes(n)?'rel':'mom'):(v<=3||v>=125?'rel':'abs');
+    gpBind({t:'m',k:kind==='c'?'c':'n',ch,n,dev,mode});return;}
+  GP.map.forEach(m=>{if(m.t!=='m'||m.n!==n||m.ch!==ch||m.dev!==dev)return;if(m.k==='c'?kind!=='c':kind==='c')return;
+    const el=gpEl(m.id);if(!el)return;const press=kind==='n'||(kind==='c'&&v>0),k='m'+m.k+n+'_'+ch;
+    if(el.type!=='range'){if(press&&m.mode!=='rel')el.click();else if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[k]=(GP.macc[k]||0)+(v<64?v:v-128);if(Math.abs(GP.macc[k])>=4){el.click();GP.macc[k]=0;}}return;}
+    const mn=+el.min,mx=+el.max,stp=+(S[m.id]&&S[m.id].spec.step)||1;
+    if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[m.id]=(GP.macc[m.id]||0)+(v<64?v:v-128)*(mx-mn)/127;const q=Math.trunc(GP.macc[m.id]/stp)*stp;if(q){GP.macc[m.id]-=q;gpSet(el,+el.value+q);}}
+    else if(m.mode==='abs')gpSet(el,Math.round((mn+v/127*(mx-mn))/stp)*stp);
+    else{if(press){if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k],pr=kind==='n'?Math.max(.35,v/127):1;gpSet(el,Math.round((b0+pr*(mx-b0))/stp)*stp);}
+      else if(GP.hold[k]!==undefined){gpSet(el,GP.hold[k]);delete GP.hold[k];}}});}
 function gpPaint(){if(!GP.svg)return;Object.values(GP.caps).forEach(c=>c.textContent='');Object.values(GP.parts).forEach(g=>g.classList.remove('on'));
-  GP.map.forEach(m=>{const e=gpEl(m.id),lab=gpShort(gpLabel(e));
+  GP.map.forEach(m=>{if(m.t==='m')return;const e=gpEl(m.id),lab=gpShort(gpLabel(e));
     if(m.t==='b'){const g=GP.parts['b'+m.i];if(g)g.classList.add('on');if(GP.caps[m.i])GP.caps[m.i].textContent=lab;}
     else{const g=GP.parts['s'+(m.i<2?10:11)];if(g)g.classList.add('on');const c=GP.caps['a'+m.i];if(c)c.textContent=(m.i%2?'↕ ':'↔ ')+lab;}});}
 function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?((m.t==='a'&&(key==='s10'?m.i<2:m.i>=2))||(m.t==='b'&&'s'+m.i===key)):(m.t==='b'&&'b'+m.i===key));
@@ -1064,13 +1089,15 @@ function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?((m.t==='a'&&(key
 function gpHint(msg){const h=$('gph');h.hidden=!GP.learn;if(!GP.learn)return;const pads=gpPads();
   if(!GP.svg)GP.svg=gpBuild();
   h.innerHTML='';const t=document.createElement('span');t.className='gpt';
-  t.innerHTML=msg||(!pads.length?'Геймпад не виден — нажми на нём любую кнопку. ':'<b>'+pads[0].id.replace(/\(.*?\)/g,'').trim().slice(0,28)+'</b> · ')+(GP.sel?'Теперь двинь стик или нажми кнопку для «'+gpLabel(GP.sel)+'» (или тапни её на картинке)':'Тапни параметр на панели, потом кнопку на геймпаде');
+  t.innerHTML=msg||(!pads.length?'Геймпад: не виден (нажми на нём кнопку). ':'<b>'+pads[0].id.replace(/\(.*?\)/g,'').trim().slice(0,28)+'</b> · ')+(GP.mnames&&GP.mnames.length?'<br>MIDI: <b>'+GP.mnames.join(', ').slice(0,60)+'</b><br>':GP.midiErr?'<br>'+GP.midiErr+'<br>':'<br>MIDI: устройств нет<br>')+(GP.sel?'Теперь двинь стик, нажми кнопку или покрути энкодер для «'+gpLabel(GP.sel)+'» (или тапни кнопку на картинке)':'Тапни параметр на панели, потом нажми кнопку геймпада или покрути энкодер Push');
   const inf=document.createElement('div');inf.className='gpinf';
   if(GP.info&&!GP.sel){GP.info.forEach(m=>{const r=document.createElement('div');r.textContent=gpName(m)+' → '+gpLabel(gpEl(m.id))+(m.t==='a'?' (стик держишь — плывёт)':gpEl(m.id)&&gpEl(m.id).type==='range'?' (жмёшь — до максимума, отпустил — вернулось)':'')+' ';
       const x=document.createElement('button');x.type='button';x.textContent='убрать';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);inf.append(r);});}
   else if(!GP.sel)inf.textContent=GP.map.length?'Тапни кнопку на картинке — покажу, что на ней, и можно убрать.':'Пока ничего не привязано.';
+  const ml=document.createElement('div');ml.className='gpinf';GP.map.filter(m=>m.t==='m').forEach(m=>{const r=document.createElement('div');r.innerHTML='<b>'+midiName(m)+'</b> → '+gpLabel(gpEl(m.id))+' ';
+    const x=document.createElement('button');x.type='button';x.textContent='убрать';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();gpMarks();gpHint();});r.append(x);ml.append(r);});
   const cl=document.createElement('button');cl.type='button';cl.textContent='Стереть все';cl.addEventListener('click',e=>{e.stopPropagation();GP.map=[];GP.info=null;gpSave();gpMarks();gpHint();});
-  h.append(t,GP.svg,inf,cl);gpPaint();}
+  h.append(t,GP.svg,inf,ml,cl);gpPaint();}
 function gpLive(pad){if(!GP.svg||!GP.learn)return;const bt=pad?pad.buttons:[],ax=pad?pad.axes:[];
   Object.entries(GP.parts).forEach(([k,g])=>{const i=+k.slice(1),b=bt[i],v=b?(typeof b==='object'?b.value:+b):0;g.classList.toggle('pr',v>.3);});
   [[10,0],[11,2]].forEach(([b,a])=>{const e=GP['st'+b];if(!e)return;const x=PADV.find(q=>q[0]==='s'&&q[1]===b);e.setAttribute('cx',x[2]+(ax[a]||0)*9);e.setAttribute('cy',x[3]+(ax[a+1]||0)*9);
@@ -1086,7 +1113,7 @@ document.addEventListener('pointerdown',gpPick,true);
 ['mousedown','touchstart'].forEach(t=>document.addEventListener(t,e=>{if(GP.learn&&e.target.closest('#panel .sl')&&!e.target.closest('#gph'))e.preventDefault();},{capture:true,passive:false}));
 document.addEventListener('click',e=>{if(GP.learn&&!e.target.closest('#gp,#gph')&&(e.target.closest('.sl')||e.target.closest('button[id]')))e.stopPropagation(),e.preventDefault();},true);
 document.addEventListener('input',e=>{if(GP.learn&&e.isTrusted&&e.target.closest('.sl'))e.stopPropagation();},true);
-$('gp').addEventListener('click',()=>{GP.learn=!GP.learn;$('gp').setAttribute('aria-pressed',GP.learn);document.body.classList.toggle('gpl',GP.learn);if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=null;gpHint();});
+$('gp').addEventListener('click',()=>{midiInit();GP.learn=!GP.learn;$('gp').setAttribute('aria-pressed',GP.learn);document.body.classList.toggle('gpl',GP.learn);if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=null;gpHint();});
 window.addEventListener('gamepadconnected',()=>gpHint());window.addEventListener('gamepaddisconnected',()=>gpHint());
 const gpSet=(el,v)=>{v=Math.min(+el.max,Math.max(+el.min,v));if(Math.abs(v-(+el.value))<1e-9)return;el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));};
 function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)return;const pad=gpPads()[0];gpLive(pad);if(!pad)return;
@@ -1098,7 +1125,7 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)
     if(!hit)bt.forEach((b,i)=>{if(!hit&&b>.5&&GP.base.bt[i]<=.5)hit={t:'b',i};});
     if(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
     return;}
-  GP.map.forEach(m=>{const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
+  GP.map.forEach(m=>{if(m.t==='m')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
     if(el.type==='range'){const mn=+el.min,mx=+el.max;
       if(m.t==='a'){let a=m.inv?-v:v;if(Math.abs(a)<.15){if(GP.acc)GP.acc[m.id]=0;return;}
         GP.acc=GP.acc||{};const sp=Math.sign(a)*Math.pow((Math.abs(a)-.15)/.85,2)*(mx-mn)*.9*dt;GP.acc[m.id]=(GP.acc[m.id]||0)+sp;
@@ -1109,7 +1136,7 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)
     else{const on=m.t==='a'?Math.abs(v)>.6:v>.5,was=m.t==='a'?Math.abs(pv)>.6:pv>.5;
       if(on&&!was){el.click();GP.rep=GP.rep||{};GP.rep[k]=now+400;}
       else if(on&&/_(up|dn)$/.test(m.id)&&GP.rep&&now>GP.rep[k]){el.click();GP.rep[k]=now+70;}}});}
-requestAnimationFrame(gpLoop);setTimeout(gpMarks,500);
+requestAnimationFrame(gpLoop);setTimeout(()=>{gpMarks();if(GP.map.some(m=>m.t==='m'))midiInit();},500);
 requestAnimationFrame(frame);
 })();
 </script>
