@@ -179,6 +179,11 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 #split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
 #split:hover::after,#split.drag::after{background:var(--cr)}
 #app.full #split{display:none}
+.lampbox{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.lamphd{gap:8px}.lamphd .dim{flex:0 0 58px}#lamp_st{font-size:11px;color:var(--haze);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#lamp_st.ok{color:var(--cr)}
+.lampm{display:flex;gap:4px;flex-wrap:wrap}.lampm button{flex:1 1 0;padding:6px 2px;font-size:11px;min-width:0}
+.lampm button[aria-pressed="true"],#lamp_conn.ok{color:var(--void);background:var(--cr);border-color:var(--cr)}
+.sl.loff{opacity:.32}
 #out[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #app.ctl{flex-direction:row}
 #app.ctl #split{display:none!important}
@@ -240,6 +245,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
     </div>
     <div id="gph" hidden></div>
     <div id="glob"></div>
+    <div id="lamp" class="lampbox" role="group" aria-label="Лампа по Bluetooth"></div>
     <div class="bar" id="srcbar" hidden>
       <span id="srchead">демо-сцена</span>
     </div>
@@ -267,7 +273,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.14</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.15</div>
   </div>
 </div>
 
@@ -1287,6 +1293,59 @@ requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},50
     ob.setAttribute('aria-pressed','true');ctlOn();place(w).then(()=>resize(true));
     poll=setInterval(()=>{if(!OUT.w||OUT.w.closed)close();else OUT.fit();},700);});
   window.addEventListener('pagehide',()=>{try{if(OUT.w&&!OUT.w.closed)OUT.w.close();}catch(_){}});}
+
+// ---- Yongnuo YN360 over Web Bluetooth (protocol as documented by the open yn360-ble project)
+const LAMP={dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0]};
+const LSVC='f000aa60-0451-4000-b000-000000000000',LCHR='f000aa61-0451-4000-b000-000000000000';
+const LMODES=['Выкл','Белый','Цвет','Кадр','Вспышки'],LUSE=[[],['lamp_br','lamp_k'],['lamp_br','lamp_hue','lamp_sat'],['lamp_br','lamp_sat','lamp_sm'],['lamp_br','lamp_hue','lamp_sat','lamp_fl']];
+const hsv=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return [f(5),f(3),f(1)].map(x=>Math.round(x*255));};
+function lampUI(){const st=$('lamp_st'),cb=$('lamp_conn'),on=!!LAMP.ch;
+  st.textContent=on?(LAMP.dev.name||'лампа')+' · подключена':LAMP.err||(LAMP.dev?(LAMP.dev.name||'лампа')+' · отключена':'не подключена');st.classList.toggle('ok',on);
+  cb.textContent=on?'Отключить':'Подключить';cb.classList.toggle('ok',on);
+  LMODES.forEach((_,k)=>$('lamp_m'+k).setAttribute('aria-pressed',LAMP.mode===k));
+  ['lamp_br','lamp_k','lamp_hue','lamp_sat','lamp_sm','lamp_fl'].forEach(id=>S[id].row.classList.toggle('loff',!LUSE[LAMP.mode].includes(id)));}
+function lampMode(k){LAMP.mode=k;LAMP.last='';try{localStorage.setItem('kh_lmode',k);}catch(_){}lampUI();}
+async function lampConn(){LAMP.err='';
+  if(!navigator.bluetooth){LAMP.err='Bluetooth в браузере выключен: brave://flags → Web Bluetooth API → Enabled';lampUI();return;}
+  if(LAMP.ch){try{LAMP.dev.gatt.disconnect();}catch(_){}LAMP.ch=null;lampUI();return;}
+  try{const d=LAMP.dev||await navigator.bluetooth.requestDevice({filters:[{namePrefix:'YN'},{namePrefix:'Yongnuo'},{namePrefix:'YONGNUO'},{services:[LSVC]}],optionalServices:[LSVC]});
+    if(!LAMP.dev){LAMP.dev=d;d.addEventListener('gattserverdisconnected',()=>{LAMP.ch=null;lampUI();});}
+    $('lamp_st').textContent='подключаю '+(d.name||'')+'…';
+    const srv=await d.gatt.connect(),sv=await srv.getPrimaryService(LSVC);LAMP.ch=await sv.getCharacteristic(LCHR);LAMP.last='';if(!LAMP.mode)lampMode(1);}
+  catch(e){LAMP.ch=null;LAMP.err=e&&e.name==='NotFoundError'?'лампа не выбрана':'не вышло: '+((e&&e.message)||'ошибка').slice(0,60);}
+  lampUI();}
+function lampSend(b){if(!LAMP.ch||LAMP.busy)return false;LAMP.busy=true;const a=new Uint8Array(b),c=LAMP.ch;
+  const p=c.writeValueWithResponse?c.writeValueWithResponse(a):c.writeValue(a);p.catch(()=>{}).finally(()=>{LAMP.busy=false;});return true;}
+const lv=id=>+S[id].el.value;
+let lampCv=null;
+function lampFrame(){if(!lampCv){lampCv=document.createElement('canvas');lampCv.width=lampCv.height=8;}
+  const x=lampCv.getContext('2d',{willReadFrequently:true});try{x.drawImage(canvas,0,0,8,8);}catch(_){return [0,0,0];}
+  const d=x.getImageData(0,0,8,8).data;let r=0,g=0,b=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}return [r/64,g/64,b/64];}
+function lampTick(){if(!LAMP.ch)return;const br=lv('lamp_br')/100,m=LAMP.mode;let cmd;
+  if(m===0)cmd=[0xAE,0xA3,0,0,0,0x56];
+  else if(m===1){const k=lv('lamp_k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:[0xAE,0xA3,0,0,0,0x56];}
+  else{let rgb;
+    if(m===2)rgb=hsv(lv('lamp_hue'),lv('lamp_sat')/100,br);
+    else if(m===4){const ph=(t*bpm()/60)%1,len=lv('lamp_fl')/100,l=ph<len?1-ph/len:0;rgb=hsv(lv('lamp_hue'),lv('lamp_sat')/100,br*l);}
+    else{let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lv('lamp_sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),L=Math.min(1,mx/255);
+      c=c.map(x=>x/mx*255*br*Math.sqrt(L));const a=1-lv('lamp_sm')/100*.92;LAMP.sm=LAMP.sm.map((v,i)=>v+(c[i]-v)*a);rgb=LAMP.sm.map(Math.round);}
+    rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:[0xAE,0xA3,0,0,0,0x56];}
+  const key=cmd.join(','),now=performance.now();if(key===LAMP.last&&now-LAMP.lt<2000)return;
+  if(lampSend(cmd)){LAMP.last=key;LAMP.lt=now;}}
+{const box=$('lamp'),mk=(id,t,cls)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;if(cls)b.className=cls;return b;};
+  const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='dim';lb.textContent='Лампа';
+  const cb=mk('lamp_conn','Подключить'),st=document.createElement('span');st.id='lamp_st';hd.append(lb,cb,st);
+  const mr=document.createElement('div');mr.className='lampm';LMODES.forEach((n,k)=>{const b=mk('lamp_m'+k,n);b.addEventListener('click',()=>lampMode(k));mr.append(b);});
+  const nx=mk('lamp_next','Режим ▸');nx.addEventListener('click',()=>lampMode((LAMP.mode+1)%LMODES.length));mr.append(nx);
+  box.append(hd,mr);cb.addEventListener('click',lampConn);
+  addSlider(box,'lamp_br',{n:'Яркость',min:0,max:100,v:60,step:5,f:fPct,nr:1,g:1});
+  addSlider(box,'lamp_k',{n:'Тепло',min:0,max:100,v:50,step:5,f:v=>v<50?'холод '+(50-v)*2+'%':v>50?'тепло '+(v-50)*2+'%':'нейтр.',nr:1,g:1});
+  addSlider(box,'lamp_hue',{n:'Оттенок',min:0,max:359,v:280,step:5,f:v=>v+'°',dial:1,nr:1,g:1});
+  addSlider(box,'lamp_sat',{n:'Насыщ.',min:0,max:100,v:100,step:5,f:fPct,nr:1,g:1});
+  addSlider(box,'lamp_sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
+  addSlider(box,'lamp_fl',{n:'Вспышка',min:5,max:100,v:35,step:5,f:fPct,nr:1,g:1});
+  try{const lm=+localStorage.getItem('kh_lmode');if(lm>=0&&lm<LMODES.length)LAMP.mode=lm;}catch(_){}
+  lampUI();setInterval(lampTick,70);}
 requestAnimationFrame(frame);
 })();
 </script>
