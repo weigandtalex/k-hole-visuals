@@ -279,7 +279,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.17</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.18</div>
   </div>
 </div>
 
@@ -801,6 +801,7 @@ function pgFrom(x,y){return {x:cl01((x/view.clientWidth-.5)*SX+.5),y:cl01(((1-y/
 function polySync(fromSlider){const s=SRC[ED];if(!s)return;const st=s.st,is=st.cv[st.ce].ca_shape===19,o=S.ca_shape;
   if(is&&!st.poly[st.ce])st.poly[st.ce]=defPoly();
   if(is&&fromSlider){polyEdit=true;st.cr[st.ce].ca_shape=false;}
+  if(!is)polyEdit=false;
   s.mdirty=true;
   o.up.textContent=is?'П':'▸';o.up.setAttribute('aria-label',is?'Полигон: показать или скрыть контур для правки':'Форма: больше');
   if(is)o.up.setAttribute('aria-pressed',polyEdit);else o.up.removeAttribute('aria-pressed');
