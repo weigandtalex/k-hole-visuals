@@ -267,7 +267,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.11</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.12</div>
   </div>
 </div>
 
@@ -403,13 +403,13 @@ function fitView(){
 }
 const OUT={w:null};
 function resize(force){
-  fitView();if(appEl.classList.contains('ctl')&&W&&H)view.style.aspectRatio=(OUT.w&&!OUT.w.closed?OUT.w.innerWidth/Math.max(1,OUT.w.innerHeight):16/9);
+  fitView();if(appEl.classList.contains('ctl')&&W&&H)view.style.aspectRatio=16/9;
   const ow=OUT.w&&!OUT.w.closed?OUT.w:null;
   let cw=Math.max(1,ow?ow.innerWidth:view.clientWidth),ch=Math.max(1,ow?ow.innerHeight:view.clientHeight);
   const layers=SRC.filter((s,i)=>s&&(i===MAIN||s.active)).length;
   const cap=ow?4200000:M()?(layers>2?1000000:1600000):420000;
   const s=Math.min(ow?(ow.devicePixelRatio||1):(window.devicePixelRatio||1),2,Math.sqrt(cap/(cw*ch)))*(S.q?+S.q.el.value:90)/100;
-  const w=Math.max(2,Math.round(cw*s)),h=Math.max(2,Math.round(ch*s));
+  const qq=(S.q?+S.q.el.value:90)/100,w=ow?Math.round(1920*qq):Math.max(2,Math.round(cw*s)),h=ow?Math.round(1080*qq):Math.max(2,Math.round(ch*s));
   if(w===W&&h===H&&!force)return;
   W=w;H=h;canvas.width=W;canvas.height=H;
   [scene,...fbs].forEach(o=>{if(o){gl.deleteFramebuffer(o.f);gl.deleteTexture(o.tex);}});
@@ -1253,15 +1253,15 @@ requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},50
       w.moveTo(o.availLeft,o.availTop);w.resizeTo(o.availWidth,o.availHeight);}catch(_){}}
   ob.addEventListener('click',()=>{if(OUT.w&&!OUT.w.closed){close();return;}
     const w=window.open('','khout','popup,width=1280,height=720');if(!w){note('Браузер заблокировал окно — разреши всплывающие окна для этого сайта');return;}
-    OUT.w=w;const d=w.document;d.open();d.write('<!doctype html><meta charset="utf-8"><title>K-Hole · экран</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}body.idle{cursor:none}video{width:100%;height:100%;object-fit:contain;display:block}#h{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#8497b4;font:14px/1.6 ui-monospace,monospace;background:#05070dcc;border:1px solid #2a3346;padding:12px 16px;text-align:center;transition:opacity .8s;pointer-events:none}</style><video autoplay muted playsinline></video><div id="h">Двойной клик или F — на весь экран<br>Если окно не на том мониторе — перетащи его туда</div>');d.close();
+    OUT.w=w;const d=w.document;d.open();d.write('<!doctype html><meta charset="utf-8"><title>K-Hole · экран</title><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}body{display:grid;place-items:center}body.idle{cursor:none}video{max-width:100%;max-height:100%;object-fit:contain;display:block}#h{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#8497b4;font:14px/1.6 ui-monospace,monospace;background:#05070dcc;border:1px solid #2a3346;padding:12px 16px;text-align:center;transition:opacity .8s;pointer-events:none}</style><video autoplay muted playsinline></video><div id="h">Двойной клик или F — на весь экран<br>Если окно не на том мониторе — перетащи его туда</div>');d.close();
     try{STR=canvas.captureStream();}catch(_){STR=null;}
-    const v=d.querySelector('video');if(STR){v.srcObject=STR;const pp=v.play();if(pp&&pp.catch)pp.catch(()=>{});}
+    const v=d.querySelector('video');OUT.fit=()=>{try{const r=w.devicePixelRatio||1;v.style.width=(1920/r)+'px';v.style.height=(1080/r)+'px';}catch(_){}};OUT.fit();if(STR){v.srcObject=STR;const pp=v.play();if(pp&&pp.catch)pp.catch(()=>{});}
     const h=d.getElementById('h');let it=0;const wake=()=>{d.body.classList.remove('idle');h.style.opacity=d.fullscreenElement?0:1;clearTimeout(it);it=setTimeout(()=>{d.body.classList.add('idle');h.style.opacity=0;},2500);};wake();
     const fs=()=>{try{if(d.fullscreenElement)d.exitFullscreen();else d.documentElement.requestFullscreen().catch(()=>{});}catch(_){}};
     d.addEventListener('dblclick',fs);d.addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F'||e.key==='а'||e.key==='А')fs();});d.addEventListener('mousemove',wake);
-    w.addEventListener('resize',()=>resize(true));w.addEventListener('pagehide',()=>setTimeout(()=>{if(OUT.w===w&&w.closed)close();},50));
+    w.addEventListener('resize',()=>{OUT.fit();resize(true);});w.addEventListener('pagehide',()=>setTimeout(()=>{if(OUT.w===w&&w.closed)close();},50));
     ob.setAttribute('aria-pressed','true');ctlOn();place(w).then(()=>resize(true));
-    poll=setInterval(()=>{if(!OUT.w||OUT.w.closed)close();},700);});
+    poll=setInterval(()=>{if(!OUT.w||OUT.w.closed)close();else OUT.fit();},700);});
   window.addEventListener('pagehide',()=>{try{if(OUT.w&&!OUT.w.closed)OUT.w.close();}catch(_){}});}
 requestAnimationFrame(frame);
 })();
