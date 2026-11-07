@@ -267,7 +267,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.13</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.14</div>
   </div>
 </div>
 
@@ -464,18 +464,27 @@ async function camTo(i,flip){
   note('включаю камеру…');let stream;
   if(old&&old.cam){if(old.recT)clearTimeout(old.recT);if(old.rec&&old.rec.state!=='inactive'){old.rec.onstop=()=>{};try{old.rec.stop();}catch(_){}}try{old.stream.getTracks().forEach(t=>t.stop());}catch(_){}await new Promise(r=>setTimeout(r,250));}
   const gum=fm=>navigator.mediaDevices.getUserMedia({video:{facingMode:fm,width:{ideal:1280},height:{ideal:720}},audio:false});
-  try{try{stream=await gum({exact:face});}catch(e1){if(e1&&(e1.name==='NotAllowedError'||e1.name==='SecurityError'))throw e1;stream=await gum({ideal:face});}}
+  // Computer: cameras are separate devices (laptop cam, Sony via USB, capture card…). ⇄ steps through them; the last one used is remembered.
+  const mob=/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);let devId=null,list=[];
+  if(!mob){try{list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(_){}
+    if(flip&&list.length>1){const k=list.findIndex(d=>d.deviceId===(old&&old.devId));devId=list[(k+1)%list.length].deviceId;}
+    else{try{devId=localStorage.getItem('kh_cam');}catch(_){}if(devId&&!list.some(d=>d.deviceId===devId))devId=null;}}
+  const gumD=id=>navigator.mediaDevices.getUserMedia({video:Object.assign({width:{ideal:1920},height:{ideal:1080}},id?{deviceId:{exact:id}}:{}),audio:false});
+  try{if(!mob){try{stream=await gumD(devId);}catch(e1){if(e1&&(e1.name==='NotAllowedError'||e1.name==='SecurityError'))throw e1;stream=await gumD(null);}}
+    else{try{stream=await gum({exact:face});}catch(e1){if(e1&&(e1.name==='NotAllowedError'||e1.name==='SecurityError'))throw e1;stream=await gum({ideal:face});}}}
   catch(e){const n=e&&e.name||'';note(n==='NotAllowedError'||n==='SecurityError'?(location.protocol==='https:'?'Нет доступа к камере: разреши её для этой страницы в настройках браузера.':'Камера не работает из файла на телефоне: страницу нужно открыть по https-ссылке.'):n==='NotFoundError'?'Камера не найдена.':'Камера не открылась ('+(n||'ошибка')+').');return;}
   const v=document.createElement('video');v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.srcObject=stream;
   try{await v.play();}catch(_){}
   if(v.readyState<2)await new Promise(r=>{v.addEventListener('loadeddata',r,{once:true});setTimeout(r,4000);});
   if(!v.videoWidth){stream.getTracks().forEach(t=>t.stop());note('Камера не отдаёт картинку.');return;}
   const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);texParams();upload(v,tex);
-  const o={kind:'vid',el:v,w:v.videoWidth,h:v.videoHeight,tex,thumb:thumbOf(v,v.videoWidth,v.videoHeight),cam:true,face,stream,chunks:[]};
+  const trk=stream.getVideoTracks()[0],tset=trk&&trk.getSettings?trk.getSettings():{};
+  const o={kind:'vid',el:v,w:v.videoWidth,h:v.videoHeight,tex,thumb:thumbOf(v,v.videoWidth,v.videoHeight),cam:true,face,stream,chunks:[],devId:tset.deviceId||devId};
+  if(!mob&&o.devId){try{localStorage.setItem('kh_cam',o.devId);}catch(_){}}
 
   const cur=SRC[i];mkState(o,cur||KEEP[i]);o.active=true;o.name='камера';if(cur&&cur.kind!=='demo'){KEEP[i]=null;}freeSrc(cur);SRC[i]=o;
   if(SRC[MAIN]&&SRC[MAIN].kind==='demo'&&MAIN!==i)SRC[MAIN]=null;
-  MAIN=ED=i;note('');loadPanel();resize(true);}
+  MAIN=ED=i;note(!mob&&trk&&trk.label?'камера: '+trk.label.replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)/i,'')+' · '+v.videoWidth+'×'+v.videoHeight+(list.length>1?' · ⇄ — следующая':''):'');loadPanel();resize(true);}
 // An empty cell can be the main picture too: a black frame the other pictures' fractals appear on.
 function makeBlank(i){const m=SRC[MAIN],a=m&&m.w&&m.h?m.w/m.h:.75,w=a>=1?1280:Math.round(1280*a),h=a>=1?Math.round(1280/a):1280;
   const c=document.createElement('canvas');c.width=Math.max(2,w);c.height=Math.max(2,h);const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);
