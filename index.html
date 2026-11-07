@@ -173,7 +173,12 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
   #app{flex-direction:row}
   #view{flex:1 1 auto;min-height:0}
   #panel{flex:0 0 380px;max-height:none;border-top:0;border-left:1px solid var(--line)}
+  #app #split{display:block}
 }
+#split{display:none;flex:0 0 10px;margin:0 -5px;position:relative;z-index:3;cursor:ew-resize;touch-action:none}
+#split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
+#split:hover::after,#split.drag::after{background:var(--cr)}
+#app.full #split{display:none}
 #gp[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #gph{font-size:11px;color:var(--haze);padding:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #gph b{color:var(--cr);font-weight:500}
@@ -205,6 +210,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
     <input id="pgr" type="range" min="0" max="100" value="0" hidden aria-label="Скругление выбранного угла">
     <div id="note">демо-сцена · нажми + в ячейке, чтобы добавить фото или видео</div>
   </div>
+  <div id="split" role="separator" aria-orientation="vertical" title="Тяни влево — панель крупнее. Двойной клик — обычный размер"></div>
   <div id="panel">
     <div id="srcs" class="srcs" role="group" aria-label="Восемь картинок"></div>
     <div class="bar top">
@@ -246,7 +252,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.08</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.09</div>
   </div>
 </div>
 
@@ -1188,6 +1194,15 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)
       if(on&&!was){el.click();GP.rep=GP.rep||{};GP.rep[k]=now+400;}
       else if(on&&/_(up|dn)$/.test(m.id)&&GP.rep&&now>GP.rep[k]){el.click();GP.rep[k]=now+70;}}});}
 requestAnimationFrame(gpLoop);setTimeout(()=>{gpMarks();if(GP.map.some(m=>m.t==='m'))midiInit();},500);
+
+// ---- Panel zoom: drag the handle between picture and panel (side layout only)
+{const sp=$('split'),pn=$('panel');let Z=1;try{Z=+localStorage.getItem('kh_pz')||1;}catch(_){}
+  const setZ=z=>{Z=Math.min(2.4,Math.max(1,z));pn.style.zoom=Z===1?'':Z;try{localStorage.setItem('kh_pz',Z);}catch(_){}resize();};setZ(Z);
+  let x0=0,z0=1,on=false;
+  sp.addEventListener('pointerdown',e=>{on=true;x0=e.clientX;z0=Z;sp.classList.add('drag');try{sp.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
+  sp.addEventListener('pointermove',e=>{if(!on)return;setZ(z0+(x0-e.clientX)/380);});
+  const end=()=>{on=false;sp.classList.remove('drag');};sp.addEventListener('pointerup',end);sp.addEventListener('pointercancel',end);
+  sp.addEventListener('dblclick',()=>setZ(1));}
 requestAnimationFrame(frame);
 })();
 </script>
