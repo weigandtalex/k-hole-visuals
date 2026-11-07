@@ -284,7 +284,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.21</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.22</div>
   </div>
 </div>
 
@@ -1326,10 +1326,17 @@ requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},50
 // ---- Sound: the laptop mic split into bass / mid / high / loudness, each 0..1 with auto-gain. Bands can drive any control.
 const AU={on:false,r:[0,0,0,0],lv:[0,0,0,0],pk:[1e-3,1e-3,1e-3,1e-3],beat:0,pb:0,an:null,buf:null,ctx:null,stream:null,err:''};
 const AUN=['Бас','Середина','Верх','Громкость'],BANDS=[[30,160],[160,2000],[2000,9000],[30,9000]];
-function auUI(){const b=$('au_on');b.textContent=AU.on?'Микрофон вкл':'Микрофон';b.classList.toggle('ok',AU.on);$('au_st').textContent=AU.err||(AU.on?'слушаю':'выключен');}
+function auUI(){const b=$('au_on');b.textContent=AU.on?'Микрофон вкл':'Микрофон';b.classList.toggle('ok',AU.on);$('au_st').textContent=AU.err||(AU.on?(AU.label||'слушаю'):'выключен');}
+async function auNext(){let list=[];try{list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput'&&d.deviceId&&d.deviceId!=='default'&&d.deviceId!=='communications');}catch(_){}
+  if(!list.length){AU.err='сначала включи микрофон — тогда появится список';auUI();AU.err='';return;}
+  const k=list.findIndex(d=>d.deviceId===AU.dev);AU.dev=list[(k+1)%list.length].deviceId;try{localStorage.setItem('kh_mic',AU.dev);}catch(_){}
+  if(AU.on){AU.re=1;await auToggle();}await auToggle();}
 async function auToggle(){AU.err='';
   if(AU.on){try{AU.stream.getTracks().forEach(t=>t.stop());AU.ctx.close();}catch(_){}AU.on=false;AU.lv=[0,0,0,0];auRelease();auUI();return;}
-  try{AU.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+  try{if(AU.dev===undefined){try{AU.dev=localStorage.getItem('kh_mic')||null;}catch(_){AU.dev=null;}}
+    const ac=d=>Object.assign({echoCancellation:false,noiseSuppression:false,autoGainControl:false},d?{deviceId:{exact:d}}:{});
+    try{AU.stream=await navigator.mediaDevices.getUserMedia({audio:ac(AU.dev),video:false});}catch(e1){if(e1&&e1.name==='NotAllowedError')throw e1;AU.stream=await navigator.mediaDevices.getUserMedia({audio:ac(null),video:false});}
+    {const tr=AU.stream.getAudioTracks()[0];AU.label=tr&&tr.label?tr.label.replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)/i,''):'';const st=tr&&tr.getSettings?tr.getSettings():{};if(st.deviceId)AU.dev=st.deviceId;}
     AU.ctx=new (window.AudioContext||window.webkitAudioContext)();const src=AU.ctx.createMediaStreamSource(AU.stream);
     AU.an=AU.ctx.createAnalyser();AU.an.fftSize=2048;AU.an.smoothingTimeConstant=.45;src.connect(AU.an);AU.buf=new Float32Array(AU.an.frequencyBinCount);AU.on=true;}
   catch(e){AU.err=e&&e.name==='NotAllowedError'?'нет доступа к микрофону — разреши в браузере':'микрофон не открылся';}
@@ -1404,7 +1411,7 @@ function lampTick(L){const S0=src(L),m=S0.mode,now0=performance.now();
 {const box=$('lamp'),mk=(id,t,cls)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;if(cls)b.className=cls;return b;};
   const hdr=(name,btn,stId)=>{const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='dim';lb.textContent=name;const st=document.createElement('span');st.id=stId;st.className='lst';hd.append(lb,btn,st);return hd;};
   // sound block
-  const ab=document.createElement('div');ab.className='lampsec';const aon=mk('au_on','Микрофон');aon.addEventListener('click',auToggle);ab.append(hdr('Звук',aon,'au_st'));
+  const ab=document.createElement('div');ab.className='lampsec';const aon=mk('au_on','Микрофон');aon.addEventListener('click',auToggle);const ah=hdr('Звук',aon,'au_st');const anx=mk('au_next','⇄','lall');anx.title='Следующий микрофон / звуковой вход';anx.addEventListener('click',auNext);ah.insertBefore(anx,ah.lastChild);ab.append(ah);
   const tiles=document.createElement('div');tiles.className='aut';AUN.forEach((n,k)=>{const t=mk('au_b'+k,n,'aub');t.dataset.b=k;t.title='В режиме 🎮: выбери параметр, потом тапни эту полосу';tiles.append(t);});ab.append(tiles);box.append(ab);
   addSlider(ab,'au_thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct,nr:1,g:1});
   addSlider(ab,'au_rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
