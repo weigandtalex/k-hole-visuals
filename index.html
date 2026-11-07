@@ -180,10 +180,16 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 #split:hover::after,#split.drag::after{background:var(--cr)}
 #app.full #split{display:none}
 .lampbox{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
-.lamphd{gap:8px}.lamphd .dim{flex:0 0 58px}#lamp_st{font-size:11px;color:var(--haze);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#lamp_st.ok{color:var(--cr)}
+.lamphd{gap:8px}.lamphd .dim{flex:0 0 58px}
 .lampm{display:flex;gap:4px;flex-wrap:wrap}.lampm button{flex:1 1 0;padding:6px 2px;font-size:11px;min-width:0}
 .lampm button[aria-pressed="true"],#lamp_conn.ok{color:var(--void);background:var(--cr);border-color:var(--cr)}
 .sl.loff{opacity:.32}
+.lampsec{display:flex;flex-direction:column;gap:6px;padding-top:6px}.lampsec+.lampsec{border-top:1px dashed var(--line);padding-top:10px}
+.lst{font-size:11px;color:var(--haze);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lst.ok{color:var(--cr)}
+#au_on.ok,#lamp2_link[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}#lamp2_box.linked .lampm{opacity:.35}
+.aut{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.aub{--l:0;position:relative;overflow:hidden;padding:8px 2px;font-size:11px}
+.aub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(var(--l)*100%);background:var(--cr);opacity:.45;pointer-events:none}
+.gpl .aub{outline:1px dashed var(--cr)}
 #out[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #app.ctl{flex-direction:row}
 #app.ctl #split{display:none!important}
@@ -273,7 +279,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.15</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.16</div>
   </div>
 </div>
 
@@ -1068,7 +1074,7 @@ const AN=['левый стик ↔','левый стик ↕','правый ст
 const isDial=el=>!!(el&&S[el.id]&&S[el.id].spec.dial);
 // a stick as a 2D pointer (direction) occupies both its axes; drop anything that overlaps
 const gpClash=(m,h)=>{const ax=x=>x.t==='s2'?[x.i,x.i+1]:x.t==='a'?[x.i]:null,A=ax(m),B=ax(h);if(A&&B)return A.some(i=>B.includes(i));return m.t===h.t&&m.i===h.i&&m.t!=='m';};
-const gpName=m=>m.t==='s2'?(m.i===0?'левый':'правый')+' стик ◎':m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
+const gpName=m=>m.t==='au'?'Звук: '+AUN[m.i].toLowerCase():m.t==='s2'?(m.i===0?'левый':'правый')+' стик ◎':m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
 const gpEl=id=>document.getElementById(id);
 const gpLabel=el=>{if(!el)return '?';const r=el.closest('.sl');const n=r?r.querySelector('label').textContent:'';
   if(el.type==='range')return n;if(el.id.endsWith('_dn'))return n+' ◂';if(el.id.endsWith('_up'))return n+' ▸';if(el.id.endsWith('_r'))return n+' R';if(el.id.endsWith('_d'))return n+' D';
@@ -1126,7 +1132,7 @@ function midiMsg(name,d){const st=d[0]&0xf0,ch=d[0]&15,n=d[1],v=d.length>2?d[2]:
     else{if(press){if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k],pr=kind==='n'?Math.max(.35,v/127):1;gpSet(el,Math.round((b0+pr*(mx-b0))/stp)*stp);}
       else if(GP.hold[k]!==undefined){gpSet(el,GP.hold[k]);delete GP.hold[k];}}});}
 function gpPaint(){if(!GP.svg)return;Object.values(GP.caps).forEach(c=>c.textContent='');Object.values(GP.parts).forEach(g=>g.classList.remove('on'));
-  GP.map.forEach(m=>{if(m.t==='m')return;const e=gpEl(m.id),lab=gpShort(gpLabel(e));
+  GP.map.forEach(m=>{if(m.t==='m'||m.t==='au')return;const e=gpEl(m.id),lab=gpShort(gpLabel(e));
     if(m.t==='b'){const g=GP.parts['b'+m.i];if(g)g.classList.add('on');if(GP.caps[m.i])GP.caps[m.i].textContent=lab;}
     else{const g=GP.parts['s'+(m.i<2?10:11)];if(g)g.classList.add('on');const c=GP.caps['a'+m.i];if(c)c.textContent=(m.t==='s2'?'◎ ':m.i%2?'↕ ':'↔ ')+lab;}});}
 function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?(((m.t==='a'||m.t==='s2')&&(key==='s10'?m.i<2:m.i>=2))||(m.t==='b'&&'s'+m.i===key)):(m.t==='b'&&'b'+m.i===key));
@@ -1173,7 +1179,7 @@ function pushLive(k,n,v){if(!GP.psvg||!gpVis())return;const key=pkey(k==='o'?'n'
   if(!g)return;if(k==='c'&&PUSHENC.includes(n)){g.classList.add('pr');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('pr'),160);return;}
   g.classList.toggle('pr',k!=='o'&&v>0);}
 function gpRow(m,num){const r=document.createElement('div'),el=gpEl(m.id),rng=el&&el.type==='range';
-  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='s2'?' · куда наклонил — туда и направление (у открытого фрактала)':m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
+  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='au'?(rng?' · громче — выше, тихо — вернулось':' · жмёт на удар'):m.t==='s2'?' · куда наклонил — туда и направление (у открытого фрактала)':m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
   const x=document.createElement('button');x.type='button';x.textContent='снять';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();if(GP.info)GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);return r;}
 // ---- Control presets: 4 slots in the browser + a file that survives anything
 let GPP=[null,null,null,null];try{const a=JSON.parse(localStorage.getItem('kh_gpp')||'null');if(Array.isArray(a))GPP=a.concat([null,null,null,null]).slice(0,4);}catch(_){}
@@ -1216,7 +1222,8 @@ function gpLive(pad){if(!GP.svg||!gpVis())return;const bt=pad?pad.buttons:[],ax=
   Object.entries(GP.parts).forEach(([k,g])=>{const i=+k.slice(1),b=bt[i],v=b?(typeof b==='object'?b.value:+b):0;g.classList.toggle('pr',v>.3);});
   [[10,0],[11,2]].forEach(([b,a])=>{const e=GP['st'+b];if(!e)return;const x=PADV.find(q=>q[0]==='s'&&q[1]===b);e.setAttribute('cx',x[2]+(ax[a]||0)*9);e.setAttribute('cy',x[3]+(ax[a+1]||0)*9);
     GP.parts['s'+b].classList.toggle('pr',!!(Math.hypot(ax[a]||0,ax[a+1]||0)>.3||(bt[b]&&bt[b].value>.3)));});}
-function gpPick(e){if(!GP.learn)return;const tg=e.target;if(tg.closest('#gp,#gph'))return;if(!tg.closest('#panel'))return;
+function gpPick(e){if(!GP.learn)return;const tg=e.target;
+  {const ab=tg.closest('.aub');if(ab&&GP.sel){e.preventDefault();e.stopPropagation();const h={t:'au',i:+ab.dataset.b,id:GP.sel.id};GP.map=GP.map.filter(m=>!(m.t==='au'&&m.i===h.i&&m.id===h.id));GP.map.push(h);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;gpMarks();gpHint();return;}}if(tg.closest('#gp,#gph'))return;if(!tg.closest('#panel'))return;
   let el=null;const r=tg.closest('.sl');
   if(tg.closest('button[id],output[id].pb'))el=tg.closest('button[id],output[id].pb');
   else if(r)el=r.querySelector('input[type=range][id]');
@@ -1245,7 +1252,7 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length&
     const st=+(S[m.id]&&S[m.id].spec.step)||1;let d=Math.round((Math.atan2(x,-y)*180/Math.PI)/st)*st;d=((d%360)+360)%360;if(d>+el.max)d=0;
     const src=SRC[ED];if(src){try{const r=rOf(src.st,m.id);if(r[m.id]){r[m.id]=false;rUI();}}catch(_){}}
     if(+el.value!==d){el.value=d;el.dispatchEvent(new Event('input',{bubbles:true}));}});
-  GP.map.forEach(m=>{if(m.t==='m'||m.t==='s2')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
+  GP.map.forEach(m=>{if(m.t==='m'||m.t==='s2'||m.t==='au')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
     if(el.type==='range'){const mn=+el.min,mx=+el.max;
       if(m.t==='a'){let a=m.inv?-v:v;if(Math.abs(a)<.15){if(GP.acc)GP.acc[m.id]=0;return;}
         GP.acc=GP.acc||{};const sp=Math.sign(a)*Math.pow((Math.abs(a)-.15)/.85,2)*(mx-mn)*.9*dt;GP.acc[m.id]=(GP.acc[m.id]||0)+sp;
@@ -1294,58 +1301,98 @@ requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},50
     poll=setInterval(()=>{if(!OUT.w||OUT.w.closed)close();else OUT.fit();},700);});
   window.addEventListener('pagehide',()=>{try{if(OUT.w&&!OUT.w.closed)OUT.w.close();}catch(_){}});}
 
-// ---- Yongnuo YN360 over Web Bluetooth (protocol as documented by the open yn360-ble project)
-const LAMP={dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0]};
+// ---- Sound: the laptop mic split into bass / mid / high / loudness, each 0..1 with auto-gain. Bands can drive any control.
+const AU={on:false,lv:[0,0,0,0],pk:[1e-3,1e-3,1e-3,1e-3],beat:0,pb:0,an:null,buf:null,ctx:null,stream:null,err:''};
+const AUN=['Бас','Середина','Верх','Громкость'],BANDS=[[30,160],[160,2000],[2000,9000],[30,9000]];
+function auUI(){const b=$('au_on');b.textContent=AU.on?'Микрофон вкл':'Микрофон';b.classList.toggle('ok',AU.on);$('au_st').textContent=AU.err||(AU.on?'слушаю':'выключен');}
+async function auToggle(){AU.err='';
+  if(AU.on){try{AU.stream.getTracks().forEach(t=>t.stop());AU.ctx.close();}catch(_){}AU.on=false;AU.lv=[0,0,0,0];auRelease();auUI();return;}
+  try{AU.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    AU.ctx=new (window.AudioContext||window.webkitAudioContext)();const src=AU.ctx.createMediaStreamSource(AU.stream);
+    AU.an=AU.ctx.createAnalyser();AU.an.fftSize=2048;AU.an.smoothingTimeConstant=.45;src.connect(AU.an);AU.buf=new Float32Array(AU.an.frequencyBinCount);AU.on=true;}
+  catch(e){AU.err=e&&e.name==='NotAllowedError'?'нет доступа к микрофону — разреши в браузере':'микрофон не открылся';}
+  auUI();}
+function auRelease(){Object.keys(GP.hold).forEach(k=>{if(k.startsWith('au')){const id=k.split('|')[1],el=gpEl(id);if(el)gpSet(el,GP.hold[k]);delete GP.hold[k];}});}
+// moving a sound-driven slider by hand moves its resting value
+document.addEventListener('input',e=>{if(!e.isTrusted||e.target.type!=='range')return;Object.keys(GP.hold).forEach(k=>{if(k.startsWith('au')&&k.split('|')[1]===e.target.id)GP.hold[k]=+e.target.value;});},true);
+function auTick(now){requestAnimationFrame(auTick);if(!AU.on)return;AU.an.getFloatFrequencyData(AU.buf);const hz=AU.ctx.sampleRate/AU.an.fftSize;
+  const thr=+S.au_thr.el.value/100,dec=.55+.43*(+S.au_rel.el.value/100);
+  BANDS.forEach(([a,b],k)=>{let e=0,n=0;const i0=Math.max(1,Math.floor(a/hz)),i1=Math.min(AU.buf.length-1,Math.ceil(b/hz));for(let i=i0;i<=i1;i++){e+=Math.pow(10,AU.buf[i]/20);n++;}e/=Math.max(1,n);
+    AU.pk[k]=Math.max(e,AU.pk[k]*.996,2e-4);const r=e/AU.pk[k],v=Math.max(0,Math.min(1,(r-thr)/(1-thr)));AU.lv[k]=Math.max(v,AU.lv[k]*dec);
+    const t=$('au_b'+k);if(t)t.style.setProperty('--l',AU.lv[k].toFixed(3));});
+  if(AU.lv[0]>.65&&AU.pb<=.65&&now-AU.beat>140)AU.beat=now;AU.pb=AU.lv[0];
+  GP.map.forEach(m=>{if(m.t!=='au')return;const el=gpEl(m.id);if(!el)return;const v=AU.lv[m.i]||0,k='au'+m.i+'|'+m.id;
+    if(el.type==='range'){const mx=+el.max,st=+(S[m.id]&&S[m.id].spec.step)||1;if(GP.hold[k]===undefined)GP.hold[k]=+el.value;const b0=GP.hold[k];gpSet(el,Math.round((b0+v*(mx-b0))/st)*st);}
+    else{if(v>.7&&!((GP.prev[k]||0)>.7))el.click();GP.prev[k]=v;}});}
+requestAnimationFrame(auTick);
+// ---- Yongnuo YN360 lamps over Web Bluetooth (protocol as documented by the open yn360-ble project). Two lamps, each with its own settings; lamp 2 can follow lamp 1.
 const LSVC='f000aa60-0451-4000-b000-000000000000',LCHR='f000aa61-0451-4000-b000-000000000000';
-const LMODES=['Выкл','Белый','Цвет','Кадр','Вспышки'],LUSE=[[],['lamp_br','lamp_k'],['lamp_br','lamp_hue','lamp_sat'],['lamp_br','lamp_sat','lamp_sm'],['lamp_br','lamp_hue','lamp_sat','lamp_fl']];
+const LMODES=['Выкл','Белый','Цвет','Кадр','Вспышки','Звук'];
+const LUSE=[[],['br','k'],['br','hue','sat'],['br','sat','sm'],['br','hue','sat','fl'],['br','hue','sat','band']],LSL=['br','k','hue','sat','sm','fl','band'];
 const hsv=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return [f(5),f(3),f(1)].map(x=>Math.round(x*255));};
-function lampUI(){const st=$('lamp_st'),cb=$('lamp_conn'),on=!!LAMP.ch;
-  st.textContent=on?(LAMP.dev.name||'лампа')+' · подключена':LAMP.err||(LAMP.dev?(LAMP.dev.name||'лампа')+' · отключена':'не подключена');st.classList.toggle('ok',on);
+const LAMPS=[{p:'lamp_',n:'Лампа 1'},{p:'lamp2_',n:'Лампа 2'}].map(o=>Object.assign(o,{dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0],err:''}));
+let LLINK=false;
+const src=L=>LLINK&&L===LAMPS[1]?LAMPS[0]:L,lv=(L,k)=>+S[src(L).p+k].el.value;
+function lampUI(L){const st=$(L.p+'st'),cb=$(L.p+'conn'),on=!!L.ch,m=src(L).mode;
+  st.textContent=on?(L.dev.name||'лампа')+' · подключена':L.err||(L.dev?(L.dev.name||'лампа')+' · отключена':'не подключена');st.classList.toggle('ok',on);
   cb.textContent=on?'Отключить':'Подключить';cb.classList.toggle('ok',on);
-  LMODES.forEach((_,k)=>$('lamp_m'+k).setAttribute('aria-pressed',LAMP.mode===k));
-  ['lamp_br','lamp_k','lamp_hue','lamp_sat','lamp_sm','lamp_fl'].forEach(id=>S[id].row.classList.toggle('loff',!LUSE[LAMP.mode].includes(id)));}
-function lampMode(k){LAMP.mode=k;LAMP.last='';try{localStorage.setItem('kh_lmode',k);}catch(_){}lampUI();}
-async function lampConn(){LAMP.err='';
-  if(!navigator.bluetooth){LAMP.err='Bluetooth в браузере выключен: brave://flags → Web Bluetooth API → Enabled';lampUI();return;}
-  if(LAMP.ch){try{LAMP.dev.gatt.disconnect();}catch(_){}LAMP.ch=null;lampUI();return;}
-  try{const d=LAMP.dev||await navigator.bluetooth.requestDevice({filters:[{namePrefix:'YN'},{namePrefix:'Yongnuo'},{namePrefix:'YONGNUO'},{services:[LSVC]}],optionalServices:[LSVC]});
-    if(!LAMP.dev){LAMP.dev=d;d.addEventListener('gattserverdisconnected',()=>{LAMP.ch=null;lampUI();});}
-    $('lamp_st').textContent='подключаю '+(d.name||'')+'…';
-    const srv=await d.gatt.connect(),sv=await srv.getPrimaryService(LSVC);LAMP.ch=await sv.getCharacteristic(LCHR);LAMP.last='';if(!LAMP.mode)lampMode(1);}
-  catch(e){LAMP.ch=null;LAMP.err=e&&e.name==='NotFoundError'?'лампа не выбрана':'не вышло: '+((e&&e.message)||'ошибка').slice(0,60);}
-  lampUI();}
-function lampSend(b){if(!LAMP.ch||LAMP.busy)return false;LAMP.busy=true;const a=new Uint8Array(b),c=LAMP.ch;
-  const p=c.writeValueWithResponse?c.writeValueWithResponse(a):c.writeValue(a);p.catch(()=>{}).finally(()=>{LAMP.busy=false;});return true;}
-const lv=id=>+S[id].el.value;
+  LMODES.forEach((_,k)=>$(L.p+'m'+k).setAttribute('aria-pressed',L.mode===k));
+  LSL.forEach(k=>S[L.p+k].row.classList.toggle('loff',!LUSE[L.mode].includes(k)||(LLINK&&L===LAMPS[1])));
+  if(L===LAMPS[1]){$('lamp2_link').setAttribute('aria-pressed',LLINK);$('lamp2_box').classList.toggle('linked',LLINK);}}
+const lampsUI=()=>LAMPS.forEach(lampUI);
+function lampMode(L,k){L.mode=k;L.last='';try{localStorage.setItem('kh_lmode'+L.p,k);}catch(_){}lampsUI();}
+async function lampConn(L){L.err='';
+  if(!navigator.bluetooth){L.err='Bluetooth в браузере выключен: brave://flags → Web Bluetooth API → Enabled';lampUI(L);return;}
+  if(L.ch){try{L.dev.gatt.disconnect();}catch(_){}L.ch=null;lampUI(L);return;}
+  try{const d=L.dev||await navigator.bluetooth.requestDevice({filters:[{namePrefix:'YN'},{namePrefix:'Yongnuo'},{namePrefix:'YONGNUO'},{services:[LSVC]}],optionalServices:[LSVC]});
+    if(!L.dev){L.dev=d;d.addEventListener('gattserverdisconnected',()=>{L.ch=null;lampUI(L);});}
+    $(L.p+'st').textContent='подключаю '+(d.name||'')+'…';
+    const srv=await d.gatt.connect(),sv=await srv.getPrimaryService(LSVC);L.ch=await sv.getCharacteristic(LCHR);L.last='';if(!L.mode)lampMode(L,1);}
+  catch(e){L.ch=null;L.err=e&&e.name==='NotFoundError'?'лампа не выбрана':'не вышло: '+((e&&e.message)||'ошибка').slice(0,60);}
+  lampUI(L);}
+function lampSend(L,b){if(!L.ch||L.busy)return false;L.busy=true;const a=new Uint8Array(b),c=L.ch;
+  const p=c.writeValueWithResponse?c.writeValueWithResponse(a):c.writeValue(a);p.catch(()=>{}).finally(()=>{L.busy=false;});return true;}
 let lampCv=null;
 function lampFrame(){if(!lampCv){lampCv=document.createElement('canvas');lampCv.width=lampCv.height=8;}
   const x=lampCv.getContext('2d',{willReadFrequently:true});try{x.drawImage(canvas,0,0,8,8);}catch(_){return [0,0,0];}
   const d=x.getImageData(0,0,8,8).data;let r=0,g=0,b=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}return [r/64,g/64,b/64];}
-function lampTick(){if(!LAMP.ch)return;const br=lv('lamp_br')/100,m=LAMP.mode;let cmd;
-  if(m===0)cmd=[0xAE,0xA3,0,0,0,0x56];
-  else if(m===1){const k=lv('lamp_k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:[0xAE,0xA3,0,0,0,0x56];}
-  else{let rgb;
-    if(m===2)rgb=hsv(lv('lamp_hue'),lv('lamp_sat')/100,br);
-    else if(m===4){const ph=(t*bpm()/60)%1,len=lv('lamp_fl')/100,l=ph<len?1-ph/len:0;rgb=hsv(lv('lamp_hue'),lv('lamp_sat')/100,br*l);}
-    else{let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lv('lamp_sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),L=Math.min(1,mx/255);
-      c=c.map(x=>x/mx*255*br*Math.sqrt(L));const a=1-lv('lamp_sm')/100*.92;LAMP.sm=LAMP.sm.map((v,i)=>v+(c[i]-v)*a);rgb=LAMP.sm.map(Math.round);}
-    rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:[0xAE,0xA3,0,0,0,0x56];}
-  const key=cmd.join(','),now=performance.now();if(key===LAMP.last&&now-LAMP.lt<2000)return;
-  if(lampSend(cmd)){LAMP.last=key;LAMP.lt=now;}}
+const OFF=[0xAE,0xA3,0,0,0,0x56];
+function lampTick(L){if(!L.ch)return;const m=src(L).mode,br=lv(L,'br')/100;let cmd;
+  if(m===0)cmd=OFF;
+  else if(m===1){const k=lv(L,'k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:OFF;}
+  else{let rgb;const hue=lv(L,'hue'),sat=lv(L,'sat')/100;
+    if(m===2)rgb=hsv(hue,sat,br);
+    else if(m===4){let l;const len=lv(L,'fl')/100;
+      if(AU.on){const dt=performance.now()-AU.beat,ms=60+len*540;l=dt<ms?1-dt/ms:0;}else{const ph=(t*bpm()/60)%1;l=ph<len?1-ph/len:0;}
+      rgb=hsv(hue,sat,br*l);}
+    else if(m===5)rgb=hsv(hue,sat,br*(AU.lv[lv(L,'band')]||0));
+    else{let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lv(L,'sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),Lm=Math.min(1,mx/255);
+      c=c.map(x=>x/mx*255*br*Math.sqrt(Lm));const a=1-lv(L,'sm')/100*.92;L.sm=L.sm.map((v,i)=>v+(c[i]-v)*a);rgb=L.sm.map(Math.round);}
+    rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:OFF;}
+  const key=cmd.join(','),now=performance.now();if(key===L.last&&now-L.lt<2000)return;
+  if(lampSend(L,cmd)){L.last=key;L.lt=now;}}
 {const box=$('lamp'),mk=(id,t,cls)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;if(cls)b.className=cls;return b;};
-  const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='dim';lb.textContent='Лампа';
-  const cb=mk('lamp_conn','Подключить'),st=document.createElement('span');st.id='lamp_st';hd.append(lb,cb,st);
-  const mr=document.createElement('div');mr.className='lampm';LMODES.forEach((n,k)=>{const b=mk('lamp_m'+k,n);b.addEventListener('click',()=>lampMode(k));mr.append(b);});
-  const nx=mk('lamp_next','Режим ▸');nx.addEventListener('click',()=>lampMode((LAMP.mode+1)%LMODES.length));mr.append(nx);
-  box.append(hd,mr);cb.addEventListener('click',lampConn);
-  addSlider(box,'lamp_br',{n:'Яркость',min:0,max:100,v:60,step:5,f:fPct,nr:1,g:1});
-  addSlider(box,'lamp_k',{n:'Тепло',min:0,max:100,v:50,step:5,f:v=>v<50?'холод '+(50-v)*2+'%':v>50?'тепло '+(v-50)*2+'%':'нейтр.',nr:1,g:1});
-  addSlider(box,'lamp_hue',{n:'Оттенок',min:0,max:359,v:280,step:5,f:v=>v+'°',dial:1,nr:1,g:1});
-  addSlider(box,'lamp_sat',{n:'Насыщ.',min:0,max:100,v:100,step:5,f:fPct,nr:1,g:1});
-  addSlider(box,'lamp_sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
-  addSlider(box,'lamp_fl',{n:'Вспышка',min:5,max:100,v:35,step:5,f:fPct,nr:1,g:1});
-  try{const lm=+localStorage.getItem('kh_lmode');if(lm>=0&&lm<LMODES.length)LAMP.mode=lm;}catch(_){}
-  lampUI();setInterval(lampTick,70);}
+  const hdr=(name,btn,stId)=>{const hd=document.createElement('div');hd.className='bar lamphd';const lb=document.createElement('span');lb.className='dim';lb.textContent=name;const st=document.createElement('span');st.id=stId;st.className='lst';hd.append(lb,btn,st);return hd;};
+  // sound block
+  const ab=document.createElement('div');ab.className='lampsec';const aon=mk('au_on','Микрофон');aon.addEventListener('click',auToggle);ab.append(hdr('Звук',aon,'au_st'));
+  const tiles=document.createElement('div');tiles.className='aut';AUN.forEach((n,k)=>{const t=mk('au_b'+k,n,'aub');t.dataset.b=k;t.title='В режиме 🎮: выбери параметр, потом тапни эту полосу';tiles.append(t);});ab.append(tiles);box.append(ab);
+  addSlider(ab,'au_thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct,nr:1,g:1});
+  addSlider(ab,'au_rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
+  LAMPS.forEach((L,li)=>{const sec=document.createElement('div');sec.className='lampsec';sec.id=L.p+'box';
+    const cb=mk(L.p+'conn','Подключить');cb.addEventListener('click',()=>lampConn(L));const hd=hdr(L.n,cb,L.p+'st');sec.append(hd);
+    if(li===1){const lk=mk('lamp2_link','= Лампа 1','lk');lk.title='Лампа 2 повторяет всё за лампой 1';lk.addEventListener('click',()=>{LLINK=!LLINK;try{localStorage.setItem('kh_llink',LLINK?1:0);}catch(_){}LAMPS[1].last='';lampsUI();});hd.append(lk);}
+    const mr=document.createElement('div');mr.className='lampm';LMODES.forEach((n,k)=>{const b=mk(L.p+'m'+k,n);b.addEventListener('click',()=>lampMode(L,k));mr.append(b);});
+    const nx=mk(L.p+'next','▸');nx.title='Следующий режим';nx.addEventListener('click',()=>lampMode(L,(L.mode+1)%LMODES.length));mr.append(nx);sec.append(mr);box.append(sec);
+    addSlider(sec,L.p+'br',{n:'Яркость',min:0,max:100,v:60,step:5,f:fPct,nr:1,g:1});
+    addSlider(sec,L.p+'k',{n:'Тепло',min:0,max:100,v:50,step:5,f:v=>v<50?'холод '+(50-v)*2+'%':v>50?'тепло '+(v-50)*2+'%':'нейтр.',nr:1,g:1});
+    addSlider(sec,L.p+'hue',{n:'Оттенок',min:0,max:359,v:li?190:280,step:5,f:v=>v+'°',dial:1,nr:1,g:1});
+    addSlider(sec,L.p+'sat',{n:'Насыщ.',min:0,max:100,v:100,step:5,f:fPct,nr:1,g:1});
+    addSlider(sec,L.p+'sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
+    addSlider(sec,L.p+'fl',{n:'Вспышка',min:5,max:100,v:35,step:5,f:fPct,nr:1,g:1});
+    addSlider(sec,L.p+'band',{n:'Полоса',min:0,max:3,v:0,step:1,f:v=>AUN[v],nr:1,g:1});
+    try{const lm=localStorage.getItem('kh_lmode'+L.p);if(lm!==null&&+lm>=0&&+lm<LMODES.length)L.mode=+lm;}catch(_){}});
+  try{LLINK=localStorage.getItem('kh_llink')==='1';}catch(_){}
+  auUI();lampsUI();setInterval(()=>LAMPS.forEach(lampTick),70);}
 requestAnimationFrame(frame);
 })();
 </script>
