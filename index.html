@@ -267,7 +267,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.12</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.13</div>
   </div>
 </div>
 
@@ -1050,7 +1050,10 @@ const gpSave=()=>{try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));}catc
 const gpPads=()=>{try{return [...(navigator.getGamepads?navigator.getGamepads():[])].filter(Boolean);}catch(_){return [];}};
 const BN=['✕/A','○/B','□/X','△/Y','L1','R1','L2','R2','Share','Options','L3','R3','↑','↓','←','→','PS','Тачпад'];
 const AN=['левый стик ↔','левый стик ↕','правый стик ↔','правый стик ↕'];
-const gpName=m=>m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
+const isDial=el=>!!(el&&S[el.id]&&S[el.id].spec.dial);
+// a stick as a 2D pointer (direction) occupies both its axes; drop anything that overlaps
+const gpClash=(m,h)=>{const ax=x=>x.t==='s2'?[x.i,x.i+1]:x.t==='a'?[x.i]:null,A=ax(m),B=ax(h);if(A&&B)return A.some(i=>B.includes(i));return m.t===h.t&&m.i===h.i&&m.t!=='m';};
+const gpName=m=>m.t==='s2'?(m.i===0?'левый':'правый')+' стик ◎':m.t==='m'?midiName(m):m.t==='a'?(AN[m.i]||'ось '+m.i):(BN[m.i]||'кнопка '+m.i);
 const gpEl=id=>document.getElementById(id);
 const gpLabel=el=>{if(!el)return '?';const r=el.closest('.sl');const n=r?r.querySelector('label').textContent:'';
   if(el.type==='range')return n;if(el.id.endsWith('_dn'))return n+' ◂';if(el.id.endsWith('_up'))return n+' ▸';if(el.id.endsWith('_r'))return n+' R';if(el.id.endsWith('_d'))return n+' D';
@@ -1110,11 +1113,12 @@ function midiMsg(name,d){const st=d[0]&0xf0,ch=d[0]&15,n=d[1],v=d.length>2?d[2]:
 function gpPaint(){if(!GP.svg)return;Object.values(GP.caps).forEach(c=>c.textContent='');Object.values(GP.parts).forEach(g=>g.classList.remove('on'));
   GP.map.forEach(m=>{if(m.t==='m')return;const e=gpEl(m.id),lab=gpShort(gpLabel(e));
     if(m.t==='b'){const g=GP.parts['b'+m.i];if(g)g.classList.add('on');if(GP.caps[m.i])GP.caps[m.i].textContent=lab;}
-    else{const g=GP.parts['s'+(m.i<2?10:11)];if(g)g.classList.add('on');const c=GP.caps['a'+m.i];if(c)c.textContent=(m.i%2?'↕ ':'↔ ')+lab;}});}
-function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?((m.t==='a'&&(key==='s10'?m.i<2:m.i>=2))||(m.t==='b'&&'s'+m.i===key)):(m.t==='b'&&'b'+m.i===key));
+    else{const g=GP.parts['s'+(m.i<2?10:11)];if(g)g.classList.add('on');const c=GP.caps['a'+m.i];if(c)c.textContent=(m.t==='s2'?'◎ ':m.i%2?'↕ ':'↔ ')+lab;}});}
+function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?(((m.t==='a'||m.t==='s2')&&(key==='s10'?m.i<2:m.i>=2))||(m.t==='b'&&'s'+m.i===key)):(m.t==='b'&&'b'+m.i===key));
   if(GP.sel){const hit=key[0]==='s'?{t:'a',i:key==='s10'?1:3,inv:1}:{t:'b',i:+key.slice(1)};
     if(GP.sel.type!=='range'&&hit.t==='a'){hit.t='b';hit.i=+key.slice(1);}
-    hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;gpMarks();gpHint();return;}
+    if(hit.t==='a'&&isDial(GP.sel)){hit.t='s2';hit.i=key==='s10'?0:2;delete hit.inv;}
+    hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!gpClash(m,hit));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;gpMarks();gpHint();return;}
   GP.info=ms.length?ms:null;GP.infoKey=key;gpHint();}
 // ---- Push 2 picture. Entries: [kind c/n/p, number, x, y, w, h, shape r/e, label]
 const PUSHV=(()=>{const V=[],X0=88,C=43.75,Y0=124;
@@ -1154,11 +1158,17 @@ function pushLive(k,n,v){if(!GP.psvg||!gpVis())return;const key=pkey(k==='o'?'n'
   if(!g)return;if(k==='c'&&PUSHENC.includes(n)){g.classList.add('pr');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('pr'),160);return;}
   g.classList.toggle('pr',k!=='o'&&v>0);}
 function gpRow(m,num){const r=document.createElement('div'),el=gpEl(m.id),rng=el&&el.type==='range';
-  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
+  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='s2'?' · куда наклонил — туда и направление (у открытого фрактала)':m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
   const x=document.createElement('button');x.type='button';x.textContent='снять';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();if(GP.info)GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);return r;}
 // ---- Control presets: 4 slots in the browser + a file that survives anything
 let GPP=[null,null,null,null];try{const a=JSON.parse(localStorage.getItem('kh_gpp')||'null');if(Array.isArray(a))GPP=a.concat([null,null,null,null]).slice(0,4);}catch(_){}
 const gppSave=()=>{try{localStorage.setItem('kh_gpp',JSON.stringify(GPP));}catch(_){}};
+// Standard layout, like a game's default controls. Preset 1 gets it (merged, once); a fresh setup starts with it.
+const GPSTD=[{t:'s2',i:2,id:'ca_dir'}];
+{let done=false;try{done=localStorage.getItem('kh_std')==='1';}catch(_){}
+  if(!done){const merge=a=>{a=(a||[]).slice();GPSTD.forEach(h=>{a=a.filter(m=>!gpClash(m,h));a.unshift(Object.assign({},h));});return a;};
+    GPP[0]=merge(GPP[0]);if(!GP.map.some(m=>GPSTD.some(h=>gpClash(m,h))))GP.map=merge(GP.map);
+    gppSave();try{localStorage.setItem('kh_gp',JSON.stringify(GP.map));localStorage.setItem('kh_std','1');}catch(_){}}}
 function gpExport(){const blob=new Blob([JSON.stringify({kh:'controls',v:1,map:GP.map,presets:GPP},null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='k-hole-controls.json';document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
 function gpImport(f){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(Array.isArray(o.map))GP.map=o.map;if(Array.isArray(o.presets))GPP=o.presets.concat([null,null,null,null]).slice(0,4);
@@ -1213,9 +1223,14 @@ function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length&
     if(!GP.base){GP.base={ax,bt};return;}
     let hit=null;ax.forEach((a,i)=>{if(!hit&&Math.abs(a-GP.base.ax[i])>.55)hit={t:'a',i,inv:a<GP.base.ax[i]?1:0};});
     if(!hit)bt.forEach((b,i)=>{if(!hit&&b>.5&&GP.base.bt[i]<=.5)hit={t:'b',i};});
-    if(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
+    if(hit&&hit.t==='a'&&isDial(GP.sel))hit={t:'s2',i:hit.i<2?0:2};
+    if(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!gpClash(m,hit));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
     return;}
-  GP.map.forEach(m=>{if(m.t==='m')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
+  GP.map.forEach(m=>{if(m.t!=='s2')return;const el=gpEl(m.id);if(!el)return;const x=ax[m.i]||0,y=ax[m.i+1]||0;if(Math.hypot(x,y)<.55)return;
+    const st=+(S[m.id]&&S[m.id].spec.step)||1;let d=Math.round((Math.atan2(x,-y)*180/Math.PI)/st)*st;d=((d%360)+360)%360;if(d>+el.max)d=0;
+    const src=SRC[ED];if(src){try{const r=rOf(src.st,m.id);if(r[m.id]){r[m.id]=false;rUI();}}catch(_){}}
+    if(+el.value!==d){el.value=d;el.dispatchEvent(new Event('input',{bubbles:true}));}});
+  GP.map.forEach(m=>{if(m.t==='m'||m.t==='s2')return;const el=gpEl(m.id);if(!el)return;const k=m.t+m.i,v=m.t==='a'?ax[m.i]||0:bt[m.i]||0,pv=GP.prev[k]||0;GP.prev[k]=v;
     if(el.type==='range'){const mn=+el.min,mx=+el.max;
       if(m.t==='a'){let a=m.inv?-v:v;if(Math.abs(a)<.15){if(GP.acc)GP.acc[m.id]=0;return;}
         GP.acc=GP.acc||{};const sp=Math.sign(a)*Math.pow((Math.abs(a)-.15)/.85,2)*(mx-mn)*.9*dt;GP.acc[m.id]=(GP.acc[m.id]||0)+sp;
