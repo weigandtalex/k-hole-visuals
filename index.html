@@ -186,7 +186,10 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .gpk.pr rect,.gpk.pr circle:not(.gpwell){fill:#fff;stroke:#fff}
 .gpsym{fill:var(--haze);font-size:10px;pointer-events:none}.gpk.pr .gpsym{fill:#000}
 .gpcap{fill:var(--cr);font-size:9.5px;pointer-events:none}
-.gpinf{width:100%;font-size:11px;line-height:1.7}.gpinf button{padding:1px 6px;font-size:10px;margin-left:4px}
+.gpinf{width:100%;font-size:11px;line-height:1.7}.gpinf i{font-style:normal;display:inline-block;min-width:15px;height:15px;line-height:15px;text-align:center;border-radius:8px;background:var(--cr);color:#000;font-size:9px}
+.gpw{opacity:.6}.gptabs{display:flex;gap:6px;width:100%}.gptabs button{flex:1;padding:6px 4px}.gptabs button[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
+.pushsvg{max-width:560px}.pdisp{fill:#000;stroke:#2a3346}.gpsym.ps{font-size:7px}.pstrip{fill:var(--haze);pointer-events:none}
+.pbadge circle{fill:var(--cr)}.pbadge text{fill:#000;font-size:8px;font-weight:600;pointer-events:none}.pbadge{pointer-events:none}.gpinf button{padding:1px 6px;font-size:10px;margin-left:4px}
 .gpl .sl,.gpl #glob button,.gpl .bar button{outline:1px dashed rgba(255,255,255,.18);outline-offset:1px}
 .gpsel{outline:2px solid var(--cr)!important;outline-offset:1px}
 .gpb{box-shadow:inset 0 -2px 0 var(--cr)}
@@ -243,7 +246,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.07</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.08</div>
   </div>
 </div>
 
@@ -1055,21 +1058,23 @@ const gpShort=t=>t.length>11?t.slice(0,10)+'…':t;
 // ---- MIDI (Push 2 or any controller), same learn mode
 const PUSHENC=[14,15,71,72,73,74,75,76,77,78,79];
 function midiName(m){const P=/push/i.test(m.dev||''),n=m.n;
-  if(P){if(m.k==='c'){if(n>=71&&n<=78)return 'Энкодер '+(n-70);if(n===79)return 'Энкодер мастер';if(n===14)return 'Энкодер темп';if(n===15)return 'Энкодер swing';return 'Кнопка CC'+n;}
+  if(P){if(m.k==='p')return 'Тач-стрип';if(m.k==='c'){if(n>=102&&n<=109)return 'Кнопка над экраном '+(n-101);if(n>=20&&n<=27)return 'Кнопка под экраном '+(n-19);const pv=PUSHV.find(v=>v[0]==='c'&&v[1]===n&&v[7]&&!PUSHENC.includes(n));if(pv)return pv[7];if(n>=71&&n<=78)return 'Энкодер '+(n-70);if(n===79)return 'Энкодер мастер';if(n===14)return 'Энкодер темп';if(n===15)return 'Энкодер swing';return 'Кнопка CC'+n;}
     if(n>=36&&n<=99)return 'Пэд '+(Math.floor((n-36)/8)+1)+'·'+((n-36)%8+1);}
-  return (m.k==='c'?'CC':'Нота ')+n;}
+  return m.k==='p'?'Pitch bend':(m.k==='c'?'CC':'Нота ')+n;}
 function midiInit(){if(GP.midi||GP.midiReq)return;if(!navigator.requestMIDIAccess){GP.midiErr='MIDI в этом браузере нет';return;}GP.midiReq=1;
   navigator.requestMIDIAccess().then(a=>{GP.midi=a;const hook=()=>{GP.mnames=[];a.inputs.forEach(inp=>{GP.mnames.push(inp.name);inp.onmidimessage=e=>midiMsg(inp.name,e.data);});gpHint();};hook();a.onstatechange=hook;})
    .catch(()=>{GP.midiErr='MIDI не разрешён браузером';gpHint();});}
 function gpBind(hit){hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i&&m.n===hit.n&&m.ch===hit.ch&&m.k===hit.k&&m.dev===hit.dev));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;GP.prev={};GP.hold={};gpMarks();gpHint();}
 function midiMsg(name,d){const st=d[0]&0xf0,ch=d[0]&15,n=d[1],v=d.length>2?d[2]:0;let kind;
-  if(st===0xB0)kind='c';else if(st===0x90&&v>0)kind='n';else if(st===0x80||st===0x90)kind='o';else return;
-  const push=/push/i.test(name);if(push&&kind!=='c'&&n<=10)return; // encoder touch notes
+  let v2=v;if(st===0xB0)kind='c';else if(st===0x90&&v>0)kind='n';else if(st===0x80||st===0x90)kind='o';else if(st===0xE0){kind='p';v2=((v<<7)|n)/16383*127;}else return;
+  const push=/push/i.test(name);if(push&&(kind==='n'||kind==='o')&&n<=12)return; // encoder / strip touch notes
+  const nn=kind==='p'?0:n;if(push){pushLive(kind,nn,v2);if(GP.learn&&GP.view!=='push'){GP.view='push';GP.info=null;gpHint();}}
   const dev=name.slice(0,40);
-  if(GP.learn){if(!GP.sel||kind==='o'||(kind==='c'&&v===0))return;
+  if(GP.learn&&GP.sel){if(kind==='o'||(kind==='c'&&v===0))return;
+    if(kind==='p'){gpBind({t:'m',k:'p',ch,n:0,dev,mode:'abs'});return;}
     const mode=kind==='n'?'mom':push?(PUSHENC.includes(n)?'rel':'mom'):(v<=3||v>=125?'rel':'abs');
     gpBind({t:'m',k:kind==='c'?'c':'n',ch,n,dev,mode});return;}
-  GP.map.forEach(m=>{if(m.t!=='m'||m.n!==n||m.ch!==ch||m.dev!==dev)return;if(m.k==='c'?kind!=='c':kind==='c')return;
+  GP.map.forEach(m=>{if(m.t!=='m'||m.n!==nn||m.ch!==ch||!midiMatch(m,dev))return;if(m.k==='p'?kind!=='p':m.k==='c'?kind!=='c':(kind!=='n'&&kind!=='o'))return;if(kind==='p'){const el=gpEl(m.id);if(el&&el.type==='range'){const mn=+el.min,mx=+el.max,stp=+(S[m.id]&&S[m.id].spec.step)||1;gpSet(el,Math.round((mn+v2/127*(mx-mn))/stp)*stp);}return;}
     const el=gpEl(m.id);if(!el)return;const press=kind==='n'||(kind==='c'&&v>0),k='m'+m.k+n+'_'+ch;
     if(el.type!=='range'){if(press&&m.mode!=='rel')el.click();else if(m.mode==='rel'){GP.macc=GP.macc||{};GP.macc[k]=(GP.macc[k]||0)+(v<64?v:v-128);if(Math.abs(GP.macc[k])>=4){el.click();GP.macc[k]=0;}}return;}
     const mn=+el.min,mx=+el.max,stp=+(S[m.id]&&S[m.id].spec.step)||1;
@@ -1086,18 +1091,63 @@ function gpTapPart(key){const ms=GP.map.filter(m=>key[0]==='s'?((m.t==='a'&&(key
     if(GP.sel.type!=='range'&&hit.t==='a'){hit.t='b';hit.i=+key.slice(1);}
     hit.id=GP.sel.id;GP.map=GP.map.filter(m=>!(m.t===hit.t&&m.i===hit.i));GP.map.push(hit);gpSave();GP.sel.classList.remove('gpsel');GP.sel=null;GP.base=null;gpMarks();gpHint();return;}
   GP.info=ms.length?ms:null;GP.infoKey=key;gpHint();}
+// ---- Push 2 picture. Entries: [kind c/n/p, number, x, y, w, h, shape r/e, label]
+const PUSHV=(()=>{const V=[],X0=88,C=43.75,Y0=124;
+  V.push(['c',14,0,0,0,0,'e','Tempo',22,20,10],['c',15,0,0,0,0,'e','Swing',50,20,10],['c',3,8,36,26,13,'r','Tap'],['c',9,36,36,26,13,'r','Metro']);
+  for(let i=0;i<8;i++){const x=X0+i*C;V.push(['c',71+i,0,0,0,0,'e',''+(i+1),x+C/2,20,12],['c',102+i,x+3,36,C-6,11,'r',''],['c',20+i,x+3,102,C-6,11,'r','']);}
+  V.push(['c',79,0,0,0,0,'e','M',507,20,12]);
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)V.push(['n',36+r*8+c,X0+c*C+2,Y0+(7-r)*C+2,C-4,C-4,'r','']);
+  ['1/4','1/4t','1/8','1/8t','1/16','1/16t','1/32','1/32t'].forEach((l,k)=>V.push(['c',36+k,443,Y0+k*C+8,30,C-16,'r',l]));
+  V.push(['c',28,443,102,30,11,'r','Master'],['p',0,68,Y0,12,8*C,'r','']);
+  const L=[[118,'Delete'],[119,'Undo'],0,[60,'Mute'],[61,'Solo'],[29,'Stop'],0,[35,'Convert'],[117,'Dbl loop'],[116,'Quantize'],0,[88,'Duplic.'],[87,'New'],[90,'Fixed'],[89,'Automate'],[86,'Rec'],[85,'Play']],h=8*C/L.length;
+  L.forEach((b,k)=>{if(b)V.push(['c',b[0],8,Y0+k*h+1,54,h-3,'r',b[1]]);});
+  [[38,[30,'Setup'],[59,'User']],[54,[52,'+Device'],[53,'+Track']],[70,[110,'Device'],[111,'Browse']],[86,[112,'Mix'],[113,'Clip']],
+   [184,[56,'Repeat'],[57,'Accent']],[202,[58,'Scale'],[31,'Layout']],[220,[50,'Note'],[51,'Session']],[250,[55,'Oct ▲'],[54,'Oct ▼']],[268,[62,'Page ◂'],[63,'Page ▸']],[454,[49,'Shift'],[48,'Select']]]
+   .forEach(([y,a,b])=>{V.push(['c',a[0],478,y,28,13,'r',a[1]],['c',b[0],508,y,28,13,'r',b[1]]);});
+  V.push(['c',46,493,124,28,13,'r','▲'],['c',44,478,140,28,13,'r','◀'],['c',45,508,140,28,13,'r','▶'],['c',47,493,156,28,13,'r','▼']);
+  return V;})();
+const pkey=(k,n)=>k+n;
+function pushBuild(){const svg=sv('svg',{viewBox:'0 0 540 482',class:'gpsvg pushsvg',role:'img','aria-label':'Схема Push 2 с привязками'});
+  sv('rect',{x:2,y:2,width:536,height:478,rx:10,class:'gpbody'},svg);sv('rect',{x:88,y:52,width:350,height:46,rx:3,class:'pdisp'},svg);
+  GP.pp={};GP.pb={};
+  PUSHV.forEach(v=>{const [k,n,x,y,w,h,sh,lab]=v,key=pkey(k,n),g=sv('g',{class:'gpk'},svg);
+    if(sh==='e'){sv('circle',{cx:v[8],cy:v[9],r:v[10]},g);if(lab)sv('text',{x:v[8],y:v[9]+3,'text-anchor':'middle',class:'gpsym ps'},g).textContent=lab;}
+    else{sv('rect',{x,y,width:w,height:h,rx:k==='n'?3:2},g);if(lab)sv('text',{x:x+w/2,y:y+h/2+2.6,'text-anchor':'middle',class:'gpsym ps'},g).textContent=lab;
+      if(k==='p')GP.pstrip=sv('rect',{x:x+1,y:y+h-6,width:w-2,height:5,class:'pstrip'},g);}
+    const bx=sh==='e'?v[8]+v[10]-2:x+w-2,by=sh==='e'?v[9]-v[10]+2:y+2;const b=sv('g',{class:'pbadge'},svg);sv('circle',{cx:bx,cy:by,r:6.5},b);GP.pb[key]=sv('text',{x:bx,y:by+2.8,'text-anchor':'middle'},b);b.style.display='none';GP.pb[key].g=b;
+    GP.pp[key]=g;g.addEventListener('click',e=>{e.stopPropagation();pushTap(v);});});
+  return svg;}
+const pushDev=()=>(GP.mnames||[]).find(n=>/push/i.test(n))||'Ableton Push 2';
+const midiMatch=(m,dev)=>m.dev===dev||(/push/i.test(m.dev||'')&&/push/i.test(dev||''));
+function pushTap(v){const [k,n]=v,key=pkey(k,n);
+  if(GP.sel){const mode=k==='p'?'abs':k==='n'?'mom':PUSHENC.includes(n)?'rel':'mom';gpBind({t:'m',k,ch:0,n,dev:pushDev(),mode});return;}
+  const ms=GP.map.filter(m=>m.t==='m'&&/push/i.test(m.dev||'')&&m.k===k&&m.n===n);GP.info=ms.length?ms:null;GP.infoName=midiName({k,n,dev:'push'});gpHint();}
+function pushPaint(){if(!GP.psvg)return;Object.values(GP.pp).forEach(g=>g.classList.remove('on'));Object.values(GP.pb).forEach(t=>t.g.style.display='none');
+  let no=0;GP.map.forEach(m=>{if(m.t!=='m')return;no++;if(!/push/i.test(m.dev||''))return;const key=pkey(m.k,m.n);if(GP.pp[key]){GP.pp[key].classList.add('on');const b=GP.pb[key];b.g.style.display='';b.textContent=b.textContent&&b.g.dataset.on?b.textContent:no;}});}
+function pushLive(k,n,v){if(!GP.psvg||!GP.learn)return;const key=pkey(k==='o'?'n':k,n),g=GP.pp[key];
+  if(k==='p'&&GP.pstrip){const y=124+350*(1-v/127)-3;GP.pstrip.setAttribute('y',Math.min(124+344,Math.max(124,y)));return;}
+  if(!g)return;if(k==='c'&&PUSHENC.includes(n)){g.classList.add('pr');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('pr'),160);return;}
+  g.classList.toggle('pr',k!=='o'&&v>0);}
+function gpRow(m,num){const r=document.createElement('div'),el=gpEl(m.id),rng=el&&el.type==='range';
+  r.innerHTML=(num?'<i>'+num+'</i> ':'')+'<b>'+gpName(m)+'</b> → '+gpLabel(el)+'<span class="gpw">'+(m.t==='a'||m.mode==='rel'?' · крутишь — плывёт':m.mode==='abs'?' · положение = значение':rng?' · жмёшь — до максимума, отпустил — вернулось':'')+'</span> ';
+  const x=document.createElement('button');x.type='button';x.textContent='снять';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();if(GP.info)GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);return r;}
 function gpHint(msg){const h=$('gph');h.hidden=!GP.learn;if(!GP.learn)return;const pads=gpPads();
-  if(!GP.svg)GP.svg=gpBuild();
-  h.innerHTML='';const t=document.createElement('span');t.className='gpt';
-  t.innerHTML=msg||(!pads.length?'Геймпад: не виден (нажми на нём кнопку). ':'<b>'+pads[0].id.replace(/\(.*?\)/g,'').trim().slice(0,28)+'</b> · ')+(GP.mnames&&GP.mnames.length?'<br>MIDI: <b>'+GP.mnames.join(', ').slice(0,60)+'</b><br>':GP.midiErr?'<br>'+GP.midiErr+'<br>':'<br>MIDI: устройств нет<br>')+(GP.sel?'Теперь двинь стик, нажми кнопку или покрути энкодер для «'+gpLabel(GP.sel)+'» (или тапни кнопку на картинке)':'Тапни параметр на панели, потом нажми кнопку геймпада или покрути энкодер Push');
+  if(!GP.svg)GP.svg=gpBuild();if(!GP.psvg)GP.psvg=pushBuild();
+  if(!GP.view)GP.view=(GP.mnames||[]).some(n=>/push/i.test(n))&&!pads.length?'push':'pad';
+  h.innerHTML='';
+  const tb=document.createElement('div');tb.className='gptabs';[['pad','🎮 DualSense'],['push','Push 2']].forEach(([v,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',GP.view===v);b.addEventListener('click',e=>{e.stopPropagation();GP.view=v;GP.info=null;gpHint();});tb.append(b);});
+  const t=document.createElement('span');t.className='gpt';
+  t.innerHTML=msg||((GP.view==='pad'?(!pads.length?'Геймпад не виден — нажми на нём любую кнопку.':'<b>'+pads[0].id.replace(/\(.*?\)/g,'').trim().slice(0,30)+'</b>')
+     :(GP.mnames&&GP.mnames.length?'MIDI: <b>'+GP.mnames.join(', ').slice(0,60)+'</b>':GP.midiErr||'MIDI: устройств нет'))+'<br>'+
+    (GP.sel?'<b>«'+gpLabel(GP.sel)+'»</b>: двинь стик, нажми кнопку, покрути энкодер — или тапни контрол на картинке'
+      :'Тапни параметр на панели, потом контрол. Всё привязанное работает сразу.'));
   const inf=document.createElement('div');inf.className='gpinf';
-  if(GP.info&&!GP.sel){GP.info.forEach(m=>{const r=document.createElement('div');r.textContent=gpName(m)+' → '+gpLabel(gpEl(m.id))+(m.t==='a'?' (стик держишь — плывёт)':gpEl(m.id)&&gpEl(m.id).type==='range'?' (жмёшь — до максимума, отпустил — вернулось)':'')+' ';
-      const x=document.createElement('button');x.type='button';x.textContent='убрать';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();GP.info=GP.info.filter(q=>q!==m);gpMarks();gpHint();});r.append(x);inf.append(r);});}
-  else if(!GP.sel)inf.textContent=GP.map.length?'Тапни кнопку на картинке — покажу, что на ней, и можно убрать.':'Пока ничего не привязано.';
-  const ml=document.createElement('div');ml.className='gpinf';GP.map.filter(m=>m.t==='m').forEach(m=>{const r=document.createElement('div');r.innerHTML='<b>'+midiName(m)+'</b> → '+gpLabel(gpEl(m.id))+' ';
-    const x=document.createElement('button');x.type='button';x.textContent='убрать';x.addEventListener('click',e=>{e.stopPropagation();GP.map=GP.map.filter(q=>q!==m);gpSave();gpMarks();gpHint();});r.append(x);ml.append(r);});
-  const cl=document.createElement('button');cl.type='button';cl.textContent='Стереть все';cl.addEventListener('click',e=>{e.stopPropagation();GP.map=[];GP.info=null;gpSave();gpMarks();gpHint();});
-  h.append(t,GP.svg,inf,ml,cl);gpPaint();}
+  if(GP.sel){const ms=GP.map.filter(m=>m.id===GP.sel.id);if(ms.length){const hd=document.createElement('div');hd.textContent='Уже висит на этом:';inf.append(hd);ms.forEach(m=>inf.append(gpRow(m)));}}
+  else if(GP.info){GP.info.forEach(m=>inf.append(gpRow(m)));}
+  else{let no=0;const list=GP.map.filter(m=>(m.t==='m')===(GP.view==='push'));GP.map.forEach(m=>{if(m.t==='m')no++;if(list.includes(m))inf.append(gpRow(m,m.t==='m'?no:0));});
+    if(!list.length)inf.textContent='Здесь пока ничего не привязано.';}
+  const cl=document.createElement('button');cl.type='button';cl.className='gpclr';cl.textContent='Стереть все';cl.addEventListener('click',e=>{e.stopPropagation();GP.map=[];GP.info=null;gpSave();gpMarks();gpHint();});
+  h.append(tb,t,GP.view==='pad'?GP.svg:GP.psvg,inf,cl);gpPaint();pushPaint();}
 function gpLive(pad){if(!GP.svg||!GP.learn)return;const bt=pad?pad.buttons:[],ax=pad?pad.axes:[];
   Object.entries(GP.parts).forEach(([k,g])=>{const i=+k.slice(1),b=bt[i],v=b?(typeof b==='object'?b.value:+b):0;g.classList.toggle('pr',v>.3);});
   [[10,0],[11,2]].forEach(([b,a])=>{const e=GP['st'+b];if(!e)return;const x=PADV.find(q=>q[0]==='s'&&q[1]===b);e.setAttribute('cx',x[2]+(ax[a]||0)*9);e.setAttribute('cy',x[3]+(ax[a+1]||0)*9);
@@ -1108,10 +1158,10 @@ function gpPick(e){if(!GP.learn)return;const tg=e.target;if(tg.closest('#gp,#gph
   else if(r)el=r.querySelector('input[type=range][id]');
   else if(tg.closest('[id]')&&/^(BUTTON|INPUT)$/.test(tg.closest('[id]').tagName))el=tg.closest('[id]');
   if(!el)return;e.preventDefault();e.stopPropagation();
-  if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=el;el.classList.add('gpsel');GP.base=null;gpHint();}
+  if(GP.sel)GP.sel.classList.remove('gpsel');if(GP.sel===el){GP.sel=null;gpHint();return;}GP.sel=el;GP.info=null;el.classList.add('gpsel');GP.base=null;gpHint();}
 document.addEventListener('pointerdown',gpPick,true);
 ['mousedown','touchstart'].forEach(t=>document.addEventListener(t,e=>{if(GP.learn&&e.target.closest('#panel .sl')&&!e.target.closest('#gph'))e.preventDefault();},{capture:true,passive:false}));
-document.addEventListener('click',e=>{if(GP.learn&&!e.target.closest('#gp,#gph')&&(e.target.closest('.sl')||e.target.closest('button[id]')))e.stopPropagation(),e.preventDefault();},true);
+document.addEventListener('click',e=>{if(GP.learn&&e.isTrusted&&!e.target.closest('#gp,#gph')&&(e.target.closest('.sl')||e.target.closest('button[id]')))e.stopPropagation(),e.preventDefault();},true);
 document.addEventListener('input',e=>{if(GP.learn&&e.isTrusted&&e.target.closest('.sl'))e.stopPropagation();},true);
 $('gp').addEventListener('click',()=>{midiInit();GP.learn=!GP.learn;$('gp').setAttribute('aria-pressed',GP.learn);document.body.classList.toggle('gpl',GP.learn);if(GP.sel)GP.sel.classList.remove('gpsel');GP.sel=null;gpHint();});
 window.addEventListener('gamepadconnected',()=>gpHint());window.addEventListener('gamepaddisconnected',()=>gpHint());
@@ -1119,7 +1169,8 @@ const gpSet=(el,v)=>{v=Math.min(+el.max,Math.max(+el.min,v));if(Math.abs(v-(+el.
 function gpLoop(now){requestAnimationFrame(gpLoop);if(!GP.learn&&!GP.map.length)return;const pad=gpPads()[0];gpLive(pad);if(!pad)return;
   const dt=GP.t?Math.min(.1,(now-GP.t)/1000):0;GP.t=now;
   const ax=[...pad.axes],bt=pad.buttons.map(b=>typeof b==='object'?b.value:+b);
-  if(GP.learn){if(!GP.sel){GP.base=null;return;}
+  if(GP.learn&&GP.view!=='pad'&&(ax.some(a=>Math.abs(a)>.6)||bt.some(b=>b>.5))){GP.view='pad';GP.info=null;gpHint();}
+  if(GP.learn&&GP.sel){
     if(!GP.base){GP.base={ax,bt};return;}
     let hit=null;ax.forEach((a,i)=>{if(!hit&&Math.abs(a-GP.base.ax[i])>.55)hit={t:'a',i,inv:a<GP.base.ax[i]?1:0};});
     if(!hit)bt.forEach((b,i)=>{if(!hit&&b>.5&&GP.base.bt[i]<=.5)hit={t:'b',i};});
