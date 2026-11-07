@@ -190,6 +190,8 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .aut{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.aub{--l:0;position:relative;overflow:hidden;padding:8px 2px;font-size:11px}
 .aub::before{content:'';position:absolute;left:0;right:0;bottom:0;height:calc(var(--l)*100%);background:var(--cr);opacity:.45;pointer-events:none}
 .gpl .aub{outline:1px dashed var(--cr)}
+.lrx .dim{flex:0 0 58px;font-size:11px;align-self:center}.lrx button[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
+.lampsec .sl .rb[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #out[aria-pressed="true"]{color:var(--void);background:var(--cr);border-color:var(--cr)}
 #app.ctl{flex-direction:row}
 #app.ctl #split{display:none!important}
@@ -279,7 +281,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.18</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.19</div>
   </div>
 </div>
 
@@ -1305,7 +1307,7 @@ requestAnimationFrame(gpLoop);setTimeout(()=>{midiInit();gpHint();gpMarks();},50
   window.addEventListener('pagehide',()=>{try{if(OUT.w&&!OUT.w.closed)OUT.w.close();}catch(_){}});}
 
 // ---- Sound: the laptop mic split into bass / mid / high / loudness, each 0..1 with auto-gain. Bands can drive any control.
-const AU={on:false,lv:[0,0,0,0],pk:[1e-3,1e-3,1e-3,1e-3],beat:0,pb:0,an:null,buf:null,ctx:null,stream:null,err:''};
+const AU={on:false,r:[0,0,0,0],lv:[0,0,0,0],pk:[1e-3,1e-3,1e-3,1e-3],beat:0,pb:0,an:null,buf:null,ctx:null,stream:null,err:''};
 const AUN=['Бас','Середина','Верх','Громкость'],BANDS=[[30,160],[160,2000],[2000,9000],[30,9000]];
 function auUI(){const b=$('au_on');b.textContent=AU.on?'Микрофон вкл':'Микрофон';b.classList.toggle('ok',AU.on);$('au_st').textContent=AU.err||(AU.on?'слушаю':'выключен');}
 async function auToggle(){AU.err='';
@@ -1321,7 +1323,7 @@ document.addEventListener('input',e=>{if(!e.isTrusted||e.target.type!=='range')r
 function auTick(now){requestAnimationFrame(auTick);if(!AU.on)return;AU.an.getFloatFrequencyData(AU.buf);const hz=AU.ctx.sampleRate/AU.an.fftSize;
   const thr=+S.au_thr.el.value/100,dec=.55+.43*(+S.au_rel.el.value/100);
   BANDS.forEach(([a,b],k)=>{let e=0,n=0;const i0=Math.max(1,Math.floor(a/hz)),i1=Math.min(AU.buf.length-1,Math.ceil(b/hz));for(let i=i0;i<=i1;i++){e+=Math.pow(10,AU.buf[i]/20);n++;}e/=Math.max(1,n);
-    AU.pk[k]=Math.max(e,AU.pk[k]*.996,2e-4);const r=e/AU.pk[k],v=Math.max(0,Math.min(1,(r-thr)/(1-thr)));AU.lv[k]=Math.max(v,AU.lv[k]*dec);
+    AU.pk[k]=Math.max(e,AU.pk[k]*.996,2e-4);const r=e/AU.pk[k],v=Math.max(0,Math.min(1,(r-thr)/(1-thr)));AU.r[k]=r;AU.lv[k]=Math.max(v,AU.lv[k]*dec);
     const t=$('au_b'+k);if(t)t.style.setProperty('--l',AU.lv[k].toFixed(3));});
   if(AU.lv[0]>.65&&AU.pb<=.65&&now-AU.beat>140)AU.beat=now;AU.pb=AU.lv[0];
   GP.map.forEach(m=>{if(m.t!=='au')return;const el=gpEl(m.id);if(!el)return;const v=AU.lv[m.i]||0,k='au'+m.i+'|'+m.id;
@@ -1331,15 +1333,19 @@ requestAnimationFrame(auTick);
 // ---- Yongnuo YN360 lamps over Web Bluetooth (protocol as documented by the open yn360-ble project). Two lamps, each with its own settings; lamp 2 can follow lamp 1.
 const LSVC='f000aa60-0451-4000-b000-000000000000',LCHR='f000aa61-0451-4000-b000-000000000000';
 const LMODES=['Выкл','Белый','Цвет','Кадр','Вспышки','Звук'];
-const LUSE=[[],['br','k'],['br','hue','sat'],['br','sat','sm'],['br','hue','sat','fl'],['br','hue','sat','band']],LSL=['br','k','hue','sat','sm','fl','band'];
+const LUSE=[[],['br','k'],['br','hue','sat'],['br','sat','sm'],['br','hue','sat','fl'],['br','hue','sat','band','thr','rel']],LSL=['br','k','hue','sat','sm','fl','band','thr','rel'],LRND=['br','hue','sat'];
 const hsv=(h,s,v)=>{const f=n=>{const k=(n+h/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1));};return [f(5),f(3),f(1)].map(x=>Math.round(x*255));};
-const LAMPS=[{p:'lamp_',n:'Лампа 1'},{p:'lamp2_',n:'Лампа 2'}].map(o=>Object.assign(o,{dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0],err:''}));
+const LAMPS=[{p:'lamp_',n:'Лампа 1'},{p:'lamp2_',n:'Лампа 2'}].map(o=>Object.assign(o,{dev:null,ch:null,mode:0,busy:false,last:'',lt:0,sm:[0,0,0],err:'',rx:0,rnd:{br:false,hue:false,sat:false},lvl:0,pv:0,hitT:0,lastBeat:-1,rh:0,rs:100,rb:1}));
+const lxSave=L=>{try{localStorage.setItem('kh_lx'+L.p,JSON.stringify({rx:L.rx,rnd:L.rnd}));}catch(_){}};
+function lampHit(L){L.rh=Math.floor(Math.random()*72)*5;L.rs=40+Math.random()*60;L.rb=.3+Math.random()*.7;}
 let LLINK=false;
 const src=L=>LLINK&&L===LAMPS[1]?LAMPS[0]:L,lv=(L,k)=>+S[src(L).p+k].el.value;
 function lampUI(L){const st=$(L.p+'st'),cb=$(L.p+'conn'),on=!!L.ch,m=src(L).mode;
   st.textContent=on?(L.dev.name||'лампа')+' · подключена':L.err||(L.dev?(L.dev.name||'лампа')+' · отключена':'не подключена');st.classList.toggle('ok',on);
   cb.textContent=on?'Отключить':'Подключить';cb.classList.toggle('ok',on);
   LMODES.forEach((_,k)=>$(L.p+'m'+k).setAttribute('aria-pressed',L.mode===k));
+  [0,1].forEach(k=>$(L.p+'rx'+k).setAttribute('aria-pressed',L.rx===k));$(L.p+'rxrow').classList.toggle('loff',L.mode!==5||(LLINK&&L===LAMPS[1]));
+  LRND.forEach(k=>$(L.p+k+'_r').setAttribute('aria-pressed',!!L.rnd[k]));
   LSL.forEach(k=>S[L.p+k].row.classList.toggle('loff',!LUSE[L.mode].includes(k)||(LLINK&&L===LAMPS[1])));
   if(L===LAMPS[1]){$('lamp2_link').setAttribute('aria-pressed',LLINK);$('lamp2_box').classList.toggle('linked',LLINK);}}
 const lampsUI=()=>LAMPS.forEach(lampUI);
@@ -1360,15 +1366,19 @@ function lampFrame(){if(!lampCv){lampCv=document.createElement('canvas');lampCv.
   const x=lampCv.getContext('2d',{willReadFrequently:true});try{x.drawImage(canvas,0,0,8,8);}catch(_){return [0,0,0];}
   const d=x.getImageData(0,0,8,8).data;let r=0,g=0,b=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}return [r/64,g/64,b/64];}
 const OFF=[0xAE,0xA3,0,0,0,0x56];
-function lampTick(L){if(!L.ch)return;const m=src(L).mode,br=lv(L,'br')/100;let cmd;
+function lampTick(L){const S0=src(L),m=S0.mode,now0=performance.now();
+  if(m===5){const thr=lv(L,'thr')/100,dec=Math.pow(.55+.43*lv(L,'rel')/100,70/16),raw=AU.on?(AU.r[lv(L,'band')]||0):0,v=Math.max(0,Math.min(1,(raw-thr)/Math.max(.05,1-thr)));
+    L.lvl=Math.max(v,L.lvl*dec);if(v>.5&&L.pv<=.5&&now0-L.hitT>120){L.hitT=now0;lampHit(L);}L.pv=v;}
+  else if(m===4){const bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if(bt!==L.lastBeat){L.lastBeat=bt;lampHit(L);}}
+  if(!L.ch)return;const rn=S0.rnd,br=lv(L,'br')/100*(rn.br?S0.rb:1);let cmd;
   if(m===0)cmd=OFF;
   else if(m===1){const k=lv(L,'k')/100,c=Math.round(99*br*Math.min(1,2*(1-k))),w=Math.round(99*br*Math.min(1,2*k));cmd=c+w?[0xAE,0xAA,1,c,w,0x56]:OFF;}
-  else{let rgb;const hue=lv(L,'hue'),sat=lv(L,'sat')/100;
+  else{let rgb;const hue=rn.hue&&m>=4?S0.rh:lv(L,'hue'),sat=rn.sat&&m>=4?S0.rs/100:lv(L,'sat')/100;
     if(m===2)rgb=hsv(hue,sat,br);
     else if(m===4){let l;const len=lv(L,'fl')/100;
       if(AU.on){const dt=performance.now()-AU.beat,ms=60+len*540;l=dt<ms?1-dt/ms:0;}else{const ph=(t*bpm()/60)%1;l=ph<len?1-ph/len:0;}
       rgb=hsv(hue,sat,br*l);}
-    else if(m===5)rgb=hsv(hue,sat,br*(AU.lv[lv(L,'band')]||0));
+    else if(m===5){const g=S0.rx===1?(L.lvl>.5?1:0):L.lvl;rgb=hsv(hue,sat,br*g);}
     else{let c=lampFrame();const gr=(c[0]+c[1]+c[2])/3,f=lv(L,'sat')/50;c=c.map(x=>Math.max(0,gr+(x-gr)*f));const mx=Math.max(...c,1),Lm=Math.min(1,mx/255);
       c=c.map(x=>x/mx*255*br*Math.sqrt(Lm));const a=1-lv(L,'sm')/100*.92;L.sm=L.sm.map((v,i)=>v+(c[i]-v)*a);rgb=L.sm.map(Math.round);}
     rgb=rgb.map(v=>Math.max(0,Math.min(255,v)));cmd=rgb[0]+rgb[1]+rgb[2]?[0xAE,0xA1,...rgb,0x56]:OFF;}
@@ -1393,6 +1403,12 @@ function lampTick(L){if(!L.ch)return;const m=src(L).mode,br=lv(L,'br')/100;let c
     addSlider(sec,L.p+'sm',{n:'Плавность',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
     addSlider(sec,L.p+'fl',{n:'Вспышка',min:5,max:100,v:35,step:5,f:fPct,nr:1,g:1});
     addSlider(sec,L.p+'band',{n:'Полоса',min:0,max:3,v:0,step:1,f:v=>AUN[v],nr:1,g:1});
+    const rxr=document.createElement('div');rxr.className='lampm lrx';rxr.id=L.p+'rxrow';const rl=document.createElement('span');rl.className='dim';rl.textContent='Реакция';rxr.append(rl);
+    [['Плавно','яркость идёт за звуком'],['Вкл/выкл','громко — горит, тихо — гаснет']].forEach(([n,tt],k)=>{const b=mk(L.p+'rx'+k,n);b.title=tt;b.addEventListener('click',()=>{L.rx=k;lxSave(L);lampsUI();});rxr.append(b);});sec.append(rxr);
+    addSlider(sec,L.p+'thr',{n:'Порог',min:0,max:90,v:30,step:5,f:fPct,nr:1,g:1});
+    addSlider(sec,L.p+'rel',{n:'Спад',min:0,max:100,v:50,step:5,f:fPct,nr:1,g:1});
+    LRND.forEach(k=>{const b=mk(L.p+k+'_r','R','rb');b.title='Случайно на каждый удар (режимы Вспышки и Звук)';b.addEventListener('click',()=>{L.rnd[k]=!L.rnd[k];lxSave(L);lampsUI();});S[L.p+k].row.lastChild.replaceWith(b);});
+    try{const x=JSON.parse(localStorage.getItem('kh_lx'+L.p)||'null');if(x){L.rx=x.rx||0;Object.assign(L.rnd,x.rnd||{});}}catch(_){}
     try{const lm=localStorage.getItem('kh_lmode'+L.p);if(lm!==null&&+lm>=0&&+lm<LMODES.length)L.mode=+lm;}catch(_){}});
   try{LLINK=localStorage.getItem('kh_llink')==='1';}catch(_){}
   auUI();lampsUI();setInterval(()=>LAMPS.forEach(lampTick),70);}
