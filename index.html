@@ -182,6 +182,8 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 #lamp{grid-template-columns:repeat(auto-fit,minmax(262px,1fr))!important}.lsl{grid-template-columns:52px 24px minmax(0,1fr) 24px 24px 46px 24px;gap:4px}.lsl .st,.lsl .rb,.lsl .db{width:24px}.pnl .lampm button{padding:6px 2px}.pnl .lampm{flex-wrap:wrap}.pnl .lampm button{flex:1 1 auto}
 .pnl{container-type:inline-size}
 @container (max-width:340px){.lsl{grid-template-columns:50px minmax(0,1fr) 22px 44px 22px}.lsl .st{display:none}.lsl .rb,.lsl .db{width:22px}.lamphd .lall{padding:6px 4px}}#lamp>.pnl:first-child{grid-column:1/-1}
+#tip{position:fixed;z-index:50;max-width:300px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:#0b0f18f2;color:var(--ice,#dfe7f5);font-size:11.5px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(-2px);transition:opacity .12s,transform .12s;box-shadow:0 6px 18px #0008}
+#tip.on{opacity:1;transform:none}
 #split{display:none;flex:0 0 10px;margin:0 -5px;position:relative;z-index:3;cursor:ew-resize;touch-action:none}
 #split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
 #split:hover::after,#split.drag::after{background:var(--cr)}
@@ -297,7 +299,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.25</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.26</div>
   </div>
 </div>
 
@@ -1548,6 +1550,97 @@ function lampTick(L){const S0=lsrc(L),g=lampLevel(L);if(!L.ch)return;let cmd;
     LAMPS.forEach(L=>{let id='';try{id=localStorage.getItem('kh_ldev'+L.p)||'';}catch(_){}const d=id&&ds.find(x=>x.id===id);if(!d)return;
       lampAttach(L,d);L.want=true;L.err='ищу '+(d.name||'лампу')+'…';lampUI(L);lampOpen(L,d).then(()=>{L.tries=0;lampUI(L);}).catch(()=>lampRetry(L));});}catch(_){}})();
   setInterval(()=>{const x=t*bpm()/60,ph=x-Math.floor(x),e=$('au_tak');if(e)e.style.setProperty('--l',(ph<.25?1-ph/.25:0).toFixed(2));},70);}
+
+// ---- Hover help, Photoshop-style: appears after a short pause, gone on leave / press. Mouse only.
+const TIPS={
+ pad:'Поле — чёрная рамка вокруг картинки. Больше — картинка меньше, и фракталам есть куда «вылезать».',
+ q:'Качество — разрешение отрисовки. Ниже — быстрее и мягче, выше — резче, но тяжелее для видеокарты.',
+ fe:'Края кадра — смягчает края самой картинки, чтобы она растворялась в чёрном поле.',
+ depth:'K-hole — «глубина трипа» одним бегунком. До 50% — мало картинок, редкие крупные сдвиги; после 50% — больше картинок, мельче и фрактальнее. Перебивает настройки каскадов. R — разброс ±20%.',
+ 'au:thr':'Порог — всё тише порога считается тишиной. Выше — полосы прыгают только на сильные удары. Влияет на полосы и привязки звука к визуалу.',
+ 'au:rel':'Спад — как быстро полоса опускается после удара: мало — резко, много — тянется.',
+ 'lamp:br':'Яркость лампы. С R — на каждый удар случайная яркость (не выше D-диапазона).',
+ 'lamp:k':'Тепло — только для «Белого»: от холодного к тёплому свету.',
+ 'lamp:hue':'Оттенок — цвет лампы по кругу (0° красный, 120° зелёный, 240° синий). С R и D — случайный цвет из диапазона на каждый удар.',
+ 'lamp:sat':'Насыщенность цвета: 0 — белёсый, 100 — чистый цвет. В режиме «Картинка» — усиление цвета картинки.',
+ 'lamp:sm':'Плавность — только для «Картинки»: сглаживает резкие скачки цвета.',
+ 'lamp:thr':'Порог — насколько громким должен быть звук источника, чтобы лампа сработала.',
+ 'lamp:rel':'Спад — как долго лампа гаснет после удара. Для «Такта» — длина вспышки.',
+ dir:'Направление — куда уходят копии фрактала, в градусах. R — новое случайное на каждом новом месте. Правый стик, L2 — всем сразу.',
+ step:'Шаг старта — сдвиг во времени между фракталами: «синхр» — стартуют вместе, «поровну» — равномерно по такту, по порядку номеров.',
+ out:'Ритм мест — как часто фрактал перепрыгивает на новое место (1т = один такт). Кнопка со значением справа — сколько раз сыграть на месте.',
+ decay:'Затухание · Скорость — как быстро гаснут копии, в % от «Ритма внутри». «нет» — не гаснут.',
+ dclip:'Затухание · Яркость — сколько света получают копии, пока гаснут.',
+ dclips:'Затухание · Насыщенность — цвет гаснущих копий: плюс — сочнее, минус — к серому.',
+ light:'Свет — где появляется фрактал по яркости картинки: ☀ — в светлых местах, ☾ — в тёмных. Копии на неподходящих участках прячутся.',
+ lsoft:'Смягчение — плавность границы между светлым и тёмным для «Света».',
+ shape:'Форма окна фрактала: прямоугольники разных пропорций; «своя» — рисуешь контур сам (П); «пятно» — повторяет форму яркого пятна.',
+ size:'Масштаб — размер окна фрактала относительно кадра. Кнопка со значением — rev: обратный порядок роста копий.',
+ cnt:'Копии — сколько вложенных копий в каскаде: 1, 2, 4, 8, 16.',
+ 'sh:cnt':'Ходы — сколько шагов делает сдвиг.',
+ fin:'In — время плавного появления фрактала, в секундах.',
+ fout:'Out — время плавного исчезновения фрактала.',
+ rate:'Ритм внутри — как часто внутри каскада появляется следующая копия: от 1/64 такта до нескольких тактов.',
+ 'sh:rate':'Ритм хода — скорость шагов сдвига.',
+ shift:'Сдвиг — на сколько каждая копия смещена относительно предыдущей, в % размера окна. После 100% — большие прыжки.',
+ 'sh:shift':'Длина — на сколько клеток уезжает кусок.',
+ smooth:'Плавность — 0: копии двигаются рывками по ритму, 100: плывут.',
+ drift:'Дрейф — медленное блуждание фрактала вокруг своего места.',
+ 'sh:drift':'Плавность хода сдвига.',
+ axes:'Оси — куда ездят куски: Г — по горизонтали, В — по вертикали, оба или свободно.',
+ rep:'Повтор — что после хода: по кругу, туда-обратно, новый кусок или ехать дальше.',
+ pop:'Скачок — резкое увеличение или уменьшение куска в начале хода.',
+ grow:'Рост — кусок плавно растёт или сжимается во время хода.',
+ door:'Ход — «съезд»: кусок уезжает; «дверь»: открывается, как створка.',
+ hole:'Дырка — что остаётся на месте уехавшего куска: ничего, чёрная дыра или затягивается.',
+ edge:'Размытие — мягкость краёв окна фрактала.',
+ fade:'Прозрачность копий. Кнопка со значением: rev — прозрачность идёт в обратную сторону, r — случайно.',
+ lkey:'Прозрачность по яркости, как «Наложение по яркости» в Photoshop: ▲ — пропадают тёмные места копий, ▼ — светлые.',
+ lsoft2:'',
+ sat:'Насыщенность копий: плюс — сочнее, минус — к чёрно-белому.',
+ clip:'Клиппинг · Яркость — каждая следующая копия светлее на столько: получаются контрастные «ступени».',
+ clips:'Клиппинг · Насыщенность — как меняется цвет у каждой следующей копии.',
+ gain:'Усиление — дополнительный прирост яркости на каждом шаге каскада.',
+};
+const BTIPS={play:'Пауза / пуск',tap:'Тап — простучи темп, BPM подстроится',bpm:'Темп, удары в минуту — от него считаются все ритмы',full:'Во весь экран',out:'Картинку — в отдельное окно на второй монитор',
+ gp:'Режим привязки: тапни параметр, потом кнопку геймпада, энкодер Push или полосу звука',ca_all:'Все (держать) — пока держишь, направление задаётся всем включённым фракталам; отпустил — вернулось',
+ slotR:'R — случайный состав: какие фракталы играют, меняется сам',ucopy:'Скопировать настройки открытого фрактала',upaste:'Вставить скопированное в открытый фрактал',uall:'Раздать настройки открытого фрактала всем 8',
+ pcopy:'Скопировать все настройки картинки',ppaste:'Вставить настройки в эту картинку',pall:'Раздать настройки этой картинки всем картинкам',
+ bsave:'Save, потом цифра — сохранить всю картинку в пресет банка',fsave:'Скачать всё одним файлом: банк, картинка, привязки, лампы',fload:'Загрузить всё из файла',
+ rand:'Включить / выключить R у всех параметров сразу',resetall:'Сбросить всё у всех картинок',reset:'Сбросить открытую вкладку (двойной клик — всё)'};
+const tipFor=el=>{if(!el)return '';
+  if(el.dataset&&el.dataset.tip)return el.dataset.tip;
+  if(el.title){el.dataset.tip=el.title;el.removeAttribute('title');return el.dataset.tip;}
+  const id=el.id||'';
+  if(BTIPS[id])return BTIPS[id];
+  if(el.classList.contains('rb'))return 'R — случайное значение: меняется, когда фрактал встаёт на новое место (у ламп — на каждый удар)';
+  if(el.classList.contains('db'))return 'D — диапазон для случайного значения: тяни два ползунка';
+  if(/^bank\d$/.test(id))return 'Пресет банка '+(+id.slice(4)+1)+': загрузить (после Save — сохранить сюда)';
+  if(/^on\d$/.test(id))return 'Включить / выключить этот фрактал';
+  if(/^slot\d$/.test(id))return 'Открыть настройки фрактала '+(+id.slice(4)+1);
+  if(/^mode\d$/.test(id))return 'A — место выбирается само, M — ставишь сам тапом по картинке';
+  if(/^cam\d$/.test(id))return 'Камера в эту ячейку';if(/^flip\d$/.test(id))return 'Следующая камера';if(/^del\d$/.test(id))return 'Убрать из ячейки';
+  if(/^src\d$/.test(id))return 'Добавить фото или видео';if(/^act\d$/.test(id))return 'Сделать главной / включить слоем';
+  if(/^tabon_/.test(id))return 'Включить этот эффект на картинке';if(/^tab_/.test(id))return 'Открыть настройки эффекта';
+  const row=el.closest('.sl');if(row){const i=row.querySelector('input[type=range][id]');if(!i)return '';const rid=i.id;
+    let m=rid.match(/^lamp2?_(\w+)$/);if(m)return TIPS['lamp:'+m[1]]||'';
+    m=rid.match(/^au_(\w+)$/);if(m)return TIPS['au:'+m[1]]||'';
+    m=rid.match(/^ca_(\w+)$/);if(m)return TIPS[(typeof TAB!=='undefined'?TAB:'ca')+':'+m[1]]||TIPS[m[1]]||'';
+    return TIPS[rid]||'';}
+  return '';};
+{const tip=document.createElement('div');tip.id='tip';tip.setAttribute('role','tooltip');document.body.append(tip);
+  const hov=window.matchMedia('(hover:hover) and (pointer:fine)');let tm=0,cur=null;
+  const hide=()=>{clearTimeout(tm);tm=0;cur=null;tip.classList.remove('on');};
+  const show=(el,x,y)=>{const t=tipFor(el);if(!t)return;tip.textContent=t;tip.classList.add('on');
+    const r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;let L=Math.min(window.innerWidth-w-8,Math.max(8,x-20)),T=r.bottom+8;if(T+h>window.innerHeight-6)T=r.top-h-8;tip.style.left=L+'px';tip.style.top=Math.max(6,T)+'px';};
+  document.addEventListener('mouseover',e=>{if(!hov.matches)return;const el=e.target.closest('button,.sl,input,output,label,[data-tip],[title]');
+    if(el===cur)return;hide();if(!el)return;
+    // title → data-tip right away so the browser's own tooltip never shows
+    const tt=e.target.closest('[title]');if(tt){tt.dataset.tip=tt.title;tt.removeAttribute('title');}
+    const target=el.matches('button')||el.dataset.tip?el:(el.closest('.sl')||el);cur=el;const x=e.clientX,y=e.clientY;
+    tm=setTimeout(()=>{if(cur===el)show(target,x,y);},600);});
+  document.addEventListener('mouseout',e=>{if(!cur)return;if(!e.relatedTarget||!cur.contains(e.relatedTarget))hide();});
+  ['pointerdown','wheel','keydown'].forEach(t=>document.addEventListener(t,hide,true));window.addEventListener('scroll',hide,true);}
 requestAnimationFrame(frame);
 })();
 </script>
