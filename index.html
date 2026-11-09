@@ -190,6 +190,10 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .pxpre{flex-wrap:wrap}.pxpre .dim{flex:0 0 100%;font-size:11px}.pxpre button{flex:1 1 auto;padding:6px 6px;font-size:11px}
 .pxsec{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:6px}.pxh{font-size:11px;color:var(--haze)}
 @media (max-width:700px){#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
+#verrow{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 0 4px}#ver{font-size:10px;color:var(--haze);opacity:.6}
+#upd{font-size:10px;padding:3px 8px}
+#updbar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;border:1px solid var(--cr);border-radius:6px;background:#0b0f18f5;font-size:12px;box-shadow:0 8px 24px #000a}
+#updbar[hidden]{display:none}#updgo{color:var(--void);background:var(--cr);border-color:var(--cr);padding:5px 12px}#updx{padding:5px 8px}
 #split{display:none;flex:0 0 10px;margin:0 -5px;position:relative;z-index:3;cursor:ew-resize;touch-action:none}
 #split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
 #split:hover::after,#split.drag::after{background:var(--cr)}
@@ -306,7 +310,8 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.30</div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.31</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
 
@@ -1759,6 +1764,25 @@ function pxUniforms(t){const k=H/1080,bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if
   box.addEventListener('input',()=>{dirty=6;});
   // a hidden "on" slider-less toggle still needs to be bindable: the Вкл button has an id, so 🎮 can bind it
   window.pxUI=pxUI;pxUI();}
+
+// ---- Updates: ask GitHub Pages for the newest page (past every cache), compare the version, reload onto it
+{const cur=()=>{const m=($('ver').textContent||'').match(/(\d+)\.(\d+)/);return m?+m[1]*100+ +m[2]:0;};
+  const fmt=n=>Math.floor(n/100)+'.'+String(n%100).padStart(2,'0');
+  async function latest(){if(location.protocol!=='https:')return 0;const r=await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'});const t=await r.text();
+    const m=t.match(/версия (\d+)\.(\d+)/);return m?+m[1]*100+ +m[2]:0;}
+  async function go(n){try{if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.update().catch(()=>{})));}
+      if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));}}catch(_){}
+    location.replace(location.pathname+'?v='+(n||Date.now()));}
+  const bar=$('updbar');
+  async function check(manual){const b=$('upd');if(manual){b.textContent='⟳ проверяю…';b.disabled=true;}
+    let n=0;try{n=await latest();}catch(_){}
+    if(manual){b.disabled=false;b.textContent='⟳ Обновить';}
+    if(n>cur()){$('updtxt').textContent='Есть версия '+fmt(n)+' (у тебя '+fmt(cur())+')';bar.hidden=false;bar.dataset.v=n;if(manual)go(n);}
+    else if(manual){if(!n){if(location.protocol!=='https:')note('Обновление работает на сайте, а не из файла');else go(0);}else{note('У тебя последняя версия '+fmt(cur()));}}}
+  $('upd').addEventListener('click',()=>check(true));
+  $('updgo').addEventListener('click',()=>go(+bar.dataset.v||0));$('updx').addEventListener('click',()=>{bar.hidden=true;});
+  setTimeout(()=>check(false),4000);setInterval(()=>{if(document.visibilityState==='visible')check(false);},10*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check(false);});}
 requestAnimationFrame(frame);
 })();
 </script>
