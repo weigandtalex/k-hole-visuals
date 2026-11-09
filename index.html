@@ -186,7 +186,7 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 #tip.on{opacity:1;transform:none}
 #pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
 #pxp[hidden]{display:none}#pxp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle{flex:1}
-#px_son[aria-pressed="true"],#px_onb[aria-pressed="true"],#pxbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}
+#px_son[aria-pressed="true"],#pxp .lampm button[aria-pressed="true"],#px_onb[aria-pressed="true"],#pxbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}
 .pxpre{flex-wrap:wrap}.pxpre .dim{flex:0 0 100%;font-size:11px}.pxpre button{flex:1 1 auto;padding:6px 6px;font-size:11px}
 .pxsec{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:6px}.pxh{font-size:11px;color:var(--haze)}
 @media (max-width:700px){#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
@@ -310,7 +310,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.32</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.33</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -1653,7 +1653,7 @@ const TIPS={
  clip:'Клиппинг · Яркость — каждая следующая копия светлее на столько: получаются контрастные «ступени».',
  clips:'Клиппинг · Насыщенность — как меняется цвет у каждой следующей копии.',
  gain:'Усиление — дополнительный прирост яркости на каждом шаге каскада.',
- 'px:svol':'Громкость звука тока.','px:ssens':'Чувствительность: насколько резким должен быть провал или возврат яркости, чтобы прозвучал звук. Больше — чаще.','px:sgrit':'Треск — искры и гул 50 Гц в ударе. 0 — чистый «вжух» разряда.','px:sback':'Обратно — громкость звука включения, когда яркость возвращается. «нет» — только удары.',
+ 'px:svol':'Громкость звука тока.','px:ssens':'Чувствительность: насколько сильно должен измениться участок кадра, чтобы прозвучал звучок. Больше — реагирует на мелкие изменения.','px:sdens':'Густота — сколько звучков рождает каждый изменившийся участок. Большая площадь изменений → россыпь, маленькая → пара щелчков.','px:spitch':'Высота — базовый тон всех звучков.','px:sspread':'Разброс — насколько верх кадра звучит выше низа. 0 — все звучки одной высоты.','px:slen':'Длина одного звучка: от щелчка до протяжного разряда.','px:swidth':'Стерео — участки слева звучат слева, справа — справа. 0 — всё по центру.','px:sgrit':'Треск — сколько искр (Ток), грязи (Цифра) или расстройки (Стекло).','px:sback':'Обратно — громкость звучков от светлеющих участков (нарастают и идут вверх). «нет» — только удары.','px:shum':'Гул — фоновое электрическое гудение, тем громче и ярче, чем больше освещённой площади.',
  'px:mix':'Сила — смесь эффекта с обычной картинкой.','px:light':'Свет — где работает эффект: ☀ — только на светлых местах, ☾ — только на тёмных, «везде» — на всём кадре. Чем больше %, тем больше площадь.','px:lsoft':'Смягчение — плавность перехода между зоной с эффектом и без.','px:cell':'Ячейка — размер одной «лампочки» мозаики (для Full HD).',
  'px:adapt':'Тень крупнее — в тёмных местах ячейки укрупняются в 2 и 4 раза, на светлом остаются мелкими (как на лице в примере).',
  'px:ratio':'Вытянутость — ячейка из квадрата становится горизонтальной чёрточкой.','px:gap':'Щель — тёмный зазор между ячейками, как у LED-экрана.',
@@ -1785,50 +1785,78 @@ function pxUniforms(t){const k=H/1080,bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if
   setTimeout(()=>check(false),4000);setInterval(()=>{if(document.visibilityState==='visible')check(false);},10*60*1000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check(false);});}
 
-// ---- «Звук тока»: brightness of the finished picture drops → electric zap; comes back → power-up. Synthesized live (Web Audio).
-const ZAP={ctx:null,out:null,noise:null,prev:-1,last:0,lastUp:0};
+// ---- «Звук тока»: granular sonification of the picture. The frame is a 16×9 grid; every 50 ms each cell that darkens
+// spawns a short "grain" (where on screen → stereo position and pitch, how hard → grain intensity); cells that brighten
+// spawn reversed, rising grains. More area changing → more grains (density), not just louder. A mains hum follows the lit area.
+const ZAP={ctx:null,out:null,noise:null,prev:null,hum:null,gx:16,gy:9,cv:null};
+const ZTIMB=['Ток','Цифра','Стекло','Микс'];
 function zapCtx(){if(ZAP.ctx)return ZAP.ctx;const c=new (window.AudioContext||window.webkitAudioContext)();ZAP.ctx=c;
-  const comp=c.createDynamicsCompressor();comp.threshold.value=-12;comp.ratio.value=6;ZAP.out=c.createGain();ZAP.out.connect(comp);comp.connect(c.destination);
-  const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;ZAP.noise=b;return c;}
-function zapNoise(t0,dur){const n=ZAP.ctx.createBufferSource();n.buffer=ZAP.noise;n.loop=true;n.start(t0,Math.random()*.5);n.stop(t0+dur+.05);return n;}
-function zapEnv(g,t0,peak,a,d){g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(peak,t0+a);g.gain.exponentialRampToValueAtTime(.0001,t0+a+d);}
-function zap(k){const c=zapCtx();if(c.state==='suspended')c.resume();const t0=c.currentTime+.005,vol=PXV('svol')/100,grit=PXV('sgrit')/100;ZAP.out.gain.value=vol;
-  k=Math.max(.15,Math.min(1,k));const dur=.08+.3*k;
-  // discharge: noise through a band-pass falling from bright to low
-  {const n=zapNoise(t0,dur),bp=c.createBiquadFilter(),g=c.createGain();bp.type='bandpass';bp.Q.value=6;bp.frequency.setValueAtTime(5000+3000*k,t0);bp.frequency.exponentialRampToValueAtTime(500,t0+dur);
-    zapEnv(g,t0,.9*k,.002,dur);n.connect(bp);bp.connect(g);g.connect(ZAP.out);}
-  // crackle: a few tiny sparks
-  const sparks=Math.round(2+grit*8*k);for(let i=0;i<sparks;i++){const ts=t0+Math.random()*dur*1.4,n=zapNoise(ts,.012),hp=c.createBiquadFilter(),g=c.createGain();hp.type='highpass';hp.frequency.value=2500+Math.random()*4000;
-    zapEnv(g,ts,(.3+Math.random()*.6)*grit,.0005,.006+Math.random()*.012);n.connect(hp);hp.connect(g);g.connect(ZAP.out);}
-  // mains buzz: distorted 50 Hz saw
-  if(grit>0){const o=c.createOscillator(),ws=c.createWaveShaper(),lp=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(100,t0);o.frequency.exponentialRampToValueAtTime(50,t0+dur);
-    const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=Math.tanh(x*6);}ws.curve=cv;lp.type='lowpass';lp.frequency.value=1600;
-    zapEnv(g,t0,.25*grit*k,.004,dur*1.3);o.connect(ws);ws.connect(lp);lp.connect(g);g.connect(ZAP.out);o.start(t0);o.stop(t0+dur*1.4);}}
-function zapUp(k){const amt=PXV('sback')/100;if(amt<=0)return;const c=zapCtx();if(c.state==='suspended')c.resume();const t0=c.currentTime+.005;ZAP.out.gain.value=PXV('svol')/100;
-  k=Math.max(.15,Math.min(1,k));const dur=.25+.5*k;
-  // power-up: rising saw through an opening filter + thin whine + hiss swell
-  {const o=c.createOscillator(),lp=c.createBiquadFilter(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(45,t0);o.frequency.exponentialRampToValueAtTime(180+200*k,t0+dur);
-    lp.type='lowpass';lp.Q.value=8;lp.frequency.setValueAtTime(150,t0);lp.frequency.exponentialRampToValueAtTime(2800,t0+dur);
-    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.35*amt*k,t0+dur*.8);g.gain.exponentialRampToValueAtTime(.0001,t0+dur*1.15);o.connect(lp);lp.connect(g);g.connect(ZAP.out);o.start(t0);o.stop(t0+dur*1.2);}
-  {const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(2500,t0);o.frequency.exponentialRampToValueAtTime(7000,t0+dur);
-    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.05*amt*k,t0+dur*.9);g.gain.exponentialRampToValueAtTime(.0001,t0+dur*1.1);o.connect(g);g.connect(ZAP.out);o.start(t0);o.stop(t0+dur*1.2);}
-  {const n=zapNoise(t0,dur),hp=c.createBiquadFilter(),g=c.createGain();hp.type='highpass';hp.frequency.value=3000;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.12*amt*k,t0+dur);g.gain.exponentialRampToValueAtTime(.0001,t0+dur+.06);n.connect(hp);hp.connect(g);g.connect(ZAP.out);}}
-// watch the picture's brightness
-setInterval(()=>{if(!LST.v.px_son)return;const c=lampFrame(),L=(c[0]*.299+c[1]*.587+c[2]*.114)/255,now=performance.now();
-  if(ZAP.prev<0){ZAP.prev=L;return;}const d=L-ZAP.prev,thr=.16-PXV('ssens')/100*.145;ZAP.prev=ZAP.prev+(L-ZAP.prev)*.6;
-  if(d<-thr&&now-ZAP.last>110){ZAP.last=now;zap(-d/.3);}
-  else if(d>thr&&now-ZAP.lastUp>250){ZAP.lastUp=now;zapUp(d/.3);}},50);
+  const comp=c.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=8;comp.attack.value=.003;comp.release.value=.15;
+  ZAP.out=c.createGain();ZAP.out.connect(comp);comp.connect(c.destination);
+  const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;ZAP.noise=b;
+  const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=Math.round(x*4)/4;}ZAP.crush=cv;
+  // hum: two detuned mains saws through a filter that opens with the lit area
+  const lp=c.createBiquadFilter(),hg=c.createGain(),pn=c.createStereoPanner();lp.type='lowpass';lp.frequency.value=300;lp.Q.value=3;hg.gain.value=0;
+  [50,100.7].forEach(f=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=f;o.connect(lp);o.start();});lp.connect(hg);hg.connect(ZAP.out);ZAP.hum={lp,g:hg};
+  return c;}
+const zv=k=>PXV(k);
+function zNoise(t0,dur){const n=ZAP.ctx.createBufferSource();n.buffer=ZAP.noise;n.loop=true;n.start(t0,Math.random()*.9);n.stop(t0+dur+.03);return n;}
+function zOsc(t0,dur,type,f){const o=ZAP.ctx.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t0);o.start(t0);o.stop(t0+dur+.03);return o;}
+// one grain. up=false: strike (fast attack, falling sweep); up=true: reverse (slow swell, rising sweep, sharp cut)
+function grain(x,y,k,up,t0,gscale){const c=ZAP.ctx;const len=.02+zv('slen')/100*.38,dur=len*(.6+.8*k)*(up?1.6:1);
+  const base=60*Math.pow(2,zv('spitch')/100*5),f=base*Math.pow(2,(.5-y)*zv('sspread')/100*5)*(.85+Math.random()*.3);
+  const pan=c.createStereoPanner();pan.pan.value=Math.max(-1,Math.min(1,(x*2-1)*zv('swidth')/100));
+  const g=c.createGain(),pk=Math.min(1,k)*gscale*(up?zv('sback')/100:1);if(pk<=.0005)return;
+  if(up){g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(pk,t0+dur*.92);g.gain.linearRampToValueAtTime(0,t0+dur);}
+  else{g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(pk,t0+.002);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);}
+  g.connect(pan);pan.connect(ZAP.out);
+  let tb=LST.v.px_stimbre|0;if(tb===3)tb=Math.floor(Math.random()*3);const grit=zv('sgrit')/100;
+  const sweep=(param,a,b)=>{param.setValueAtTime(up?b:a,t0);param.exponentialRampToValueAtTime(up?a:b,t0+dur);};
+  if(tb===0){// electric: band-passed noise sweep + sparks
+    const n=zNoise(t0,dur),bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=4+6*Math.random();sweep(bp.frequency,f*16,f*3);n.connect(bp);bp.connect(g);
+    if(Math.random()<grit){const ts=t0+Math.random()*dur,s=zNoise(ts,.01),hp=c.createBiquadFilter(),sg=c.createGain();hp.type='highpass';hp.frequency.value=3000+Math.random()*5000;
+      sg.gain.setValueAtTime(pk*1.2,ts);sg.gain.exponentialRampToValueAtTime(.0001,ts+.004+Math.random()*.01);s.connect(hp);hp.connect(sg);sg.connect(pan);}}
+  else if(tb===1){// digital: crushed square blip, stepped pitch
+    const st=Math.round(Math.log2(f/55)*12),fq=55*Math.pow(2,st/12),o=zOsc(t0,dur,'square',fq),ws=c.createWaveShaper(),lp=c.createBiquadFilter();ws.curve=ZAP.crush;
+    lp.type='lowpass';lp.frequency.value=1200+grit*6000;sweep(o.frequency,fq*2,fq);o.connect(ws);ws.connect(lp);lp.connect(g);}
+  else{// glass: detuned sine pair ping
+    [1,1.007+grit*.03].forEach((m,i)=>{const o=zOsc(t0,dur*2.2,'sine',f*4*m);if(up)sweep(o.frequency,f*4*m*1.5,f*4*m);o.connect(g);});
+    if(!up){g.gain.cancelScheduledValues(t0);g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(pk*.8,t0+.003);g.gain.exponentialRampToValueAtTime(.0001,t0+dur*2.2);}}}
+function zGrid(){if(!ZAP.cv){ZAP.cv=document.createElement('canvas');ZAP.cv.width=ZAP.gx;ZAP.cv.height=ZAP.gy;}
+  const x=ZAP.cv.getContext('2d',{willReadFrequently:true});try{x.drawImage(canvas,0,0,ZAP.gx,ZAP.gy);}catch(_){return null;}
+  const d=x.getImageData(0,0,ZAP.gx,ZAP.gy).data,L=new Float32Array(ZAP.gx*ZAP.gy);for(let i=0;i<L.length;i++)L[i]=(d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114)/255;return L;}
+setInterval(()=>{if(!LST.v.px_son||!ZAP.ctx)return;const L=zGrid();if(!L)return;const c=ZAP.ctx,now=c.currentTime;ZAP.out.gain.setTargetAtTime(zv('svol')/100,now,.05);
+  let lit=0;for(let i=0;i<L.length;i++)lit+=L[i];lit/=L.length;
+  ZAP.hum.g.gain.setTargetAtTime(zv('shum')/100*.12*Math.min(1,lit*1.6),now,.15);ZAP.hum.lp.frequency.setTargetAtTime(150+lit*3200,now,.15);
+  if(!ZAP.prev){ZAP.prev=L;return;}
+  const thr=.12-zv('ssens')/100*.11,down=[],up=[];
+  for(let i=0;i<L.length;i++){const d=L[i]-ZAP.prev[i];if(d<-thr)down.push([i,-d]);else if(d>thr)up.push([i,d]);}ZAP.prev=L;
+  const dens=zv('sdens')/100,cap=Math.round(4+dens*36);
+  const play=(list,isUp)=>{if(!list.length)return;const n=Math.min(cap,Math.max(1,Math.round(list.length*(.08+dens*.92))));const gs=.55/Math.sqrt(1+n*.5);
+    for(let k=0;k<n;k++){const [i,dv]=list[Math.floor(Math.random()*list.length)];const x=(i%ZAP.gx+.5)/ZAP.gx,y=(Math.floor(i/ZAP.gx)+.5)/ZAP.gy;
+      grain(x,y,Math.min(1,dv/.35),isUp,now+.01+Math.random()*.05,gs);}};
+  play(down,false);play(up,true);},50);
 {const box=$('pxp');const sec=document.createElement('div');sec.className='pxsec';const h=document.createElement('div');h.className='pxh';h.textContent='Звук тока';sec.append(h);
-  const r=document.createElement('div');r.className='lampm';const mk=(id,t,tt)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;b.title=tt;r.append(b);return b;};
-  const on=mk('px_son','Выкл','Включить звук: провал яркости — удар тока, возврат — гул включения');const t1=mk('px_stest','⚡ Проба','Послушать удар тока');const t2=mk('px_stest2','↑ Проба','Послушать обратный звук');
-  sec.append(r);box.append(sec);
+  const r=document.createElement('div');r.className='lampm';const mk=(id,t,tt,par)=>{const b=document.createElement('button');b.type='button';b.id=id;b.textContent=t;b.title=tt;(par||r).append(b);return b;};
+  const on=mk('px_son','Выкл','Включить звук: темнеющие участки — удары, светлеющие — обратные звуки');const t1=mk('px_stest','⚡ Проба','Как будто пропала половина кадра');const t2=mk('px_stest2','↑ Проба','Как будто половина кадра засветилась');
+  sec.append(r);const tr=document.createElement('div');tr.className='lampm';const tl=document.createElement('span');tl.className='dim';tl.textContent='Тембр';tr.append(tl);
+  const tbs=ZTIMB.map((n,k)=>{const b=mk('px_st'+k,n,['Электрические разряды и искры','Цифровые блипы с огрублённым звуком','Стеклянные пинги','Случайно из трёх'][k],tr);b.addEventListener('click',()=>{LST.v.px_stimbre=k;lstSave();ui();});return b;});
+  sec.append(tr);box.append(sec);
   lampSlider(sec,'px_svol',{n:'Громкость',min:0,max:100,v:60,step:5,f:fPct});
   lampSlider(sec,'px_ssens',{n:'Чувствит.',min:0,max:100,v:50,step:5,f:fPct});
+  lampSlider(sec,'px_sdens',{n:'Густота',min:0,max:100,v:50,step:5,f:fPct});
+  lampSlider(sec,'px_spitch',{n:'Высота',min:0,max:100,v:45,step:5,f:fPct});
+  lampSlider(sec,'px_sspread',{n:'Разброс',min:0,max:100,v:60,step:5,f:fPct});
+  lampSlider(sec,'px_slen',{n:'Длина',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(sec,'px_swidth',{n:'Стерео',min:0,max:100,v:80,step:5,f:fPct});
   lampSlider(sec,'px_sgrit',{n:'Треск',min:0,max:100,v:50,step:5,f:fPct});
   lampSlider(sec,'px_sback',{n:'Обратно',min:0,max:100,v:50,step:5,f:v=>v?v+'%':'нет'});
-  const ui=()=>{const v=!!LST.v.px_son;on.textContent=v?'Вкл':'Выкл';on.setAttribute('aria-pressed',v);};
-  on.addEventListener('click',()=>{LST.v.px_son=LST.v.px_son?0:1;lstSave();if(LST.v.px_son){zapCtx().resume();ZAP.prev=-1;}ui();});
-  t1.addEventListener('click',()=>zap(.8));t2.addEventListener('click',()=>zapUp(.8));ui();}
+  lampSlider(sec,'px_shum',{n:'Гул',min:0,max:100,v:20,step:5,f:v=>v?v+'%':'нет'});
+  const ui=()=>{const v=!!LST.v.px_son;on.textContent=v?'Вкл':'Выкл';on.setAttribute('aria-pressed',v);tbs.forEach((b,k)=>b.setAttribute('aria-pressed',(LST.v.px_stimbre|0)===k));};
+  on.addEventListener('click',()=>{LST.v.px_son=LST.v.px_son?0:1;lstSave();const c=zapCtx();c.resume();ZAP.prev=null;if(!LST.v.px_son)ZAP.hum.g.gain.setTargetAtTime(0,c.currentTime,.05);ui();});
+  const burst=isUp=>{const c=zapCtx();c.resume();ZAP.out.gain.value=zv('svol')/100;const n=Math.round(4+zv('sdens')/100*30),gs=.55/Math.sqrt(1+n*.5);
+    for(let k=0;k<n;k++)grain(Math.random(),Math.random(),.5+Math.random()*.5,isUp,c.currentTime+.01+Math.random()*.25,gs);};
+  t1.addEventListener('click',()=>burst(false));t2.addEventListener('click',()=>burst(true));ui();}
 requestAnimationFrame(frame);
 })();
 </script>
