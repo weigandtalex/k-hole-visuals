@@ -184,6 +184,12 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 @container (max-width:340px){.lsl{grid-template-columns:50px minmax(0,1fr) 22px 44px 22px}.lsl .st{display:none}.lsl .rb,.lsl .db{width:22px}.lamphd .lall{padding:6px 4px}}#lamp>.pnl:first-child{grid-column:1/-1}
 #tip{position:fixed;z-index:50;max-width:300px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:#0b0f18f2;color:var(--ice,#dfe7f5);font-size:11.5px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(-2px);transition:opacity .12s,transform .12s;box-shadow:0 6px 18px #0008}
 #tip.on{opacity:1;transform:none}
+#pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
+#pxp[hidden]{display:none}#pxp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle{flex:1}
+#px_onb[aria-pressed="true"],#pxbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}
+.pxpre{flex-wrap:wrap}.pxpre .dim{flex:0 0 100%;font-size:11px}.pxpre button{flex:1 1 auto;padding:6px 6px;font-size:11px}
+.pxsec{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:6px}.pxh{font-size:11px;color:var(--haze)}
+@media (max-width:700px){#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
 #split{display:none;flex:0 0 10px;margin:0 -5px;position:relative;z-index:3;cursor:ew-resize;touch-action:none}
 #split::after{content:'';position:absolute;left:3px;top:50%;width:4px;height:56px;margin-top:-28px;border-radius:2px;background:var(--line);transition:background .15s}
 #split:hover::after,#split.drag::after{background:var(--cr)}
@@ -267,6 +273,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
       <button id="rec" type="button" hidden aria-pressed="false" aria-label="Записать видео">● REC</button>
       <button id="full" type="button" aria-label="Во весь экран">⛶</button>
       <button id="out" type="button" aria-pressed="false" title="Картинка — в отдельное окно на второй экран" aria-label="Вывести картинку на второй экран">⧉</button>
+      <button id="pxbtn" type="button" aria-pressed="false" title="Пиксели — LED / мозаика / штрихи: открыть настройки">▦</button>
       <button id="gp" type="button" aria-pressed="false" aria-label="Геймпад: привязать управление">🎮</button>
     </div>
     <div id="gph" hidden></div>
@@ -299,7 +306,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.26</div>
+      <div id="ver" style="font-size:10px;color:var(--haze);opacity:.6;padding:10px 0 4px;text-align:right">версия 1.27</div>
   </div>
 </div>
 
@@ -405,8 +412,45 @@ function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.co
 function prog(fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
   gl.bindAttribLocation(p,0,'p');gl.linkProgram(p);
   if(!gl.getProgramParameter(p,gl.LINK_STATUS))console.error(gl.getProgramInfoLog(p));return p;}
-const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD);
+// "Пиксели": LED / mosaic look as a last pass over the finished picture.
+const FPX=`precision highp float;
+uniform sampler2D uTex;uniform vec2 uRes;uniform float uT;
+uniform vec4 uA;uniform vec4 uB;uniform vec4 uC;uniform vec4 uD;uniform vec4 uE;
+float h1(float n){return fract(sin(n*127.1+.3)*43758.5453);}
+float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec3 hue(float h){return clamp(abs(mod(h*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+vec3 tx(vec2 p){return texture2D(uTex,clamp(p/uRes,vec2(0.),vec2(1.))).rgb;}
+float lines(vec2 lp,float sp,float dens,float drift){float k=floor(lp.y/sp),fy=lp.y-k*sp;
+  float thin=1.-smoothstep(.6,1.6,abs(fy-sp*.5));
+  float xx=lp.x+uT*drift*(h1(k)*1.6-.4),L=sp*2.6,seg=floor(xx/L);
+  return thin*step(h2(vec2(seg,k)),dens)*step(fract(xx/L),.55+.35*h1(seg+k*7.));}
+void main(){vec2 p=gl_FragCoord.xy,c0=uRes*.5;float cell=max(1.,uA.x);
+  float env=.55+.45*sin(p.y*.007+uT*.6);
+  float dx=uD.x*sin(p.y/uRes.y*uD.y*6.2832+uT*uD.z)*env;
+  float band=floor(p.y/(cell*3.));
+  if(h2(vec2(band,uE.y))<uD.w){float Lq=cell*(5.+14.*h1(band+uE.y*3.1));dx+=floor((p.x+dx)/Lq)*Lq+Lq*.5-(p.x+dx);}
+  vec2 q=vec2(p.x+dx,p.y);
+  if(uE.x>0.){vec2 d=q-c0;float r=length(d);q+=normalize(d+1e-4)*uE.x*cell*1.5*sin(r/(cell*6.)-uT*2.5);}
+  float big=cell*4.;vec2 bid=floor(q/big);float Lb=lum(tx((bid+.5)*big));
+  float lv=floor(clamp(1.-Lb,0.,.999)*3.);float s=cell*exp2(floor(lv*uA.y+.5));
+  vec2 cs=vec2(s*(1.+uA.z*3.),s);float ry=floor(q.y/cs.y),off=uB.x*.5*cs.x*mod(ry,2.);
+  vec2 qq=q-vec2(off,0.),id=floor(qq/cs),f=fract(qq/cs);
+  vec3 col=tx((id+.5)*cs+vec2(off,0.));
+  float g=uA.w*(s<cell*1.5?1.:.4);
+  float hole=step(f.x,g*.3)+step(1.-g*.3,f.x)+step(f.y,g*.5)+step(1.-g*.25,f.y);
+  col=mix(col,col*1.55+.06,uB.y*smoothstep(.62,.9,f.y)*step(f.y,1.-g*.25));
+  col*=hole>0.?.14:1.;
+  if(uB.z>1.)col=floor(col*uB.z+.5)/uB.z;
+  float l=lum(col);col=clamp(mix(vec3(l),col,1.+uB.w),0.,1.);
+  if(uC.x>0.){float sp=max(3.,cell*2.4);
+    vec2 d=p-c0;float r=length(d),a=atan(d.y,d.x);
+    float m=mix(lines(p,sp,uC.x,uC.z),lines(vec2(a*max(r,1.),r),sp,uC.x,uC.z*.3),step(.01,uE.x)*clamp(uE.x*1.5,0.,1.));
+    float dark=smoothstep(.42,.06,lum(col));col=mix(col,hue(uC.y)*.9+.05,m*dark*.92);}
+  gl_FragColor=vec4(mix(tx(p),col,uC.w),1.);}`;
 const U=(p,n)=>gl.getUniformLocation(p,n);
+const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD),PPX=prog(FPX);
+const upx={tex:U(PPX,'uTex'),res:U(PPX,'uRes'),t:U(PPX,'uT'),A:U(PPX,'uA'),B:U(PPX,'uB'),C:U(PPX,'uC'),D:U(PPX,'uD'),E:U(PPX,'uE')};
 const ua={res:U(PA,'uRes'),u:U(PA,'uU'),look:U(PA,'uLook')};
 const ub={res:U(PB,'uRes'),fit:U(PB,'uFit'),z:U(PB,'uZ'),s:U(PB,'uS'),p:U(PB,'uP'),b:U(PB,'uB'),m:U(PB,'uM'),caR:U(PB,'uCaR'),caP:U(PB,'uCaP'),caQ:U(PB,'uCaQ'),caS:U(PB,'uCaS'),caH:U(PB,'uCaH'),caF:U(PB,'uCaF'),caK:U(PB,'uCaK'),caU:U(PB,'uCaU'),frR:U(PB,'uFrR'),frA:U(PB,'uFrA')};
 const uc={res:U(PC,'uRes'),tex:U(PC,'uTex')};
@@ -1121,8 +1165,9 @@ function frame(now){
     gl.drawArrays(gl.TRIANGLES,0,3);
     const x=ai;ai=ni;ni=x;});
   bind(SRC[ED].st);if(skipFr>0)skipFr--;
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.useProgram(PC);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[ai].tex);gl.uniform1i(uc.tex,0);gl.uniform2f(uc.res,W,H);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[ai].tex);
+  if(typeof pxOn==='function'&&pxOn()){gl.useProgram(PPX);pxUniforms(t);}
+  else{gl.useProgram(PC);gl.uniform1i(uc.tex,0);gl.uniform2f(uc.res,W,H);}
   gl.drawArrays(gl.TRIANGLES,0,3);
   pi=ai;
 }
@@ -1601,6 +1646,15 @@ const TIPS={
  clip:'Клиппинг · Яркость — каждая следующая копия светлее на столько: получаются контрастные «ступени».',
  clips:'Клиппинг · Насыщенность — как меняется цвет у каждой следующей копии.',
  gain:'Усиление — дополнительный прирост яркости на каждом шаге каскада.',
+ 'px:mix':'Сила — смесь эффекта с обычной картинкой.','px:cell':'Ячейка — размер одной «лампочки» мозаики (для Full HD).',
+ 'px:adapt':'Тень крупнее — в тёмных местах ячейки укрупняются в 2 и 4 раза, на светлом остаются мелкими (как на лице в примере).',
+ 'px:ratio':'Вытянутость — ячейка из квадрата становится горизонтальной чёрточкой.','px:gap':'Щель — тёмный зазор между ячейками, как у LED-экрана.',
+ 'px:brick':'Кирпич — каждый второй ряд сдвинут на полъячейки.','px:glint':'Блик — светлая полоска по верху каждой ячейки.',
+ 'px:post':'Ступени — сколько уровней цвета остаётся (пиксель-арт). «нет» — без огрубления.','px:sat':'Насыщенность мозаики.',
+ 'px:lines':'Штрихи — тонкие цветные чёрточки, проступающие в тёмных местах.','px:lhue':'Цвет штрихов (190° — голубой как в примере).','px:ldrift':'Дрейф — как быстро штрихи плывут вбок.',
+ 'px:wave':'Волна — горизонтальное колебание рядов.','px:wfreq':'Частота — сколько волн по высоте кадра.','px:wspd':'Скорость бега волны.',
+ 'px:smear':'Размазка — случайные полосы растягиваются в длинные бруски; полосы меняются на каждую долю такта.',
+ 'px:ring':'Кольца — радиальная рябь от центра и штрихи по кругу, как туннель.','px:beat':'По басу — волна и размазка усиливаются от баса (нужен включённый микрофон).',
 };
 const BTIPS={play:'Пауза / пуск',tap:'Тап — простучи темп, BPM подстроится',bpm:'Темп, удары в минуту — от него считаются все ритмы',full:'Во весь экран',out:'Картинку — в отдельное окно на второй монитор',
  gp:'Режим привязки: тапни параметр, потом кнопку геймпада, энкодер Push или полосу звука',ca_all:'Все (держать) — пока держишь, направление задаётся всем включённым фракталам; отпустил — вернулось',
@@ -1624,6 +1678,7 @@ const tipFor=el=>{if(!el)return '';
   if(/^tabon_/.test(id))return 'Включить этот эффект на картинке';if(/^tab_/.test(id))return 'Открыть настройки эффекта';
   const row=el.closest('.sl');if(row){const i=row.querySelector('input[type=range][id]');if(!i)return '';const rid=i.id;
     let m=rid.match(/^lamp2?_(\w+)$/);if(m)return TIPS['lamp:'+m[1]]||'';
+    m=rid.match(/^px_(\w+)$/);if(m)return TIPS['px:'+m[1]]||'';
     m=rid.match(/^au_(\w+)$/);if(m)return TIPS['au:'+m[1]]||'';
     m=rid.match(/^ca_(\w+)$/);if(m)return TIPS[(typeof TAB!=='undefined'?TAB:'ca')+':'+m[1]]||TIPS[m[1]]||'';
     return TIPS[rid]||'';}
@@ -1641,6 +1696,65 @@ const tipFor=el=>{if(!el)return '';
     tm=setTimeout(()=>{if(cur===el)show(target,x,y);},600);});
   document.addEventListener('mouseout',e=>{if(!cur)return;if(!e.relatedTarget||!cur.contains(e.relatedTarget))hide();});
   ['pointerdown','wheel','keydown'].forEach(t=>document.addEventListener(t,hide,true));window.addEventListener('scroll',hide,true);}
+
+// ---- «Пиксели» panel: opens beside the picture; values live with the lamp store (saved, bindable, in the setup file)
+const PXV=id=>S['px_'+id]?+S['px_'+id].el.value:0;
+function pxOn(){return !!(LST.v.px_on);}
+let pxSeed=0,pxBeat=-1;
+function pxUniforms(t){const k=H/1080,bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if(bt!==pxBeat){pxBeat=bt;pxSeed=(pxSeed+1)%997;}
+  const react=PXV('beat')/100*(AU.on?(AU.lv[0]||0):0)*3,amp=1+react;
+  gl.uniform1i(upx.tex,0);gl.uniform2f(upx.res,W,H);gl.uniform1f(upx.t,t);
+  gl.uniform4f(upx.A,PXV('cell')*k,PXV('adapt')/100,PXV('ratio')/100,PXV('gap')/100);
+  gl.uniform4f(upx.B,PXV('brick')/100,PXV('glint')/100,PXV('post'),PXV('sat')/100);
+  gl.uniform4f(upx.C,PXV('lines')/100,PXV('lhue')/360,PXV('ldrift')*1.5*k,PXV('mix')/100);
+  gl.uniform4f(upx.D,PXV('wave')*k*1.2*amp,PXV('wfreq'),PXV('wspd')/20,Math.min(1,PXV('smear')/100*amp));
+  gl.uniform4f(upx.E,PXV('ring')/100,pxSeed,0,0);}
+{const box=document.createElement('div');box.id='pxp';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-label','Пиксели');
+  const hd=document.createElement('div');hd.className='bar lamphd';const tt=document.createElement('span');tt.className='ptitle';tt.textContent='▦ Пиксели';
+  const on=document.createElement('button');on.type='button';on.id='px_onb';on.textContent='Вкл';on.title='Включить / выключить эффект';
+  const cl=document.createElement('button');cl.type='button';cl.id='px_close';cl.textContent='✕';cl.title='Закрыть окно (эффект остаётся)';hd.append(tt,on,cl);box.append(hd);
+  const pr=document.createElement('div');pr.className='lampm pxpre';const pl=document.createElement('span');pl.className='dim';pl.textContent='Стиль';pr.append(pl);box.append(pr);
+  const sec=(t)=>{const d=document.createElement('div');d.className='pxsec';const h=document.createElement('div');h.className='pxh';h.textContent=t;d.append(h);box.append(d);return d;};
+  const a=sec('Ячейки');
+  lampSlider(a,'px_mix',{n:'Сила',min:0,max:100,v:100,step:5,f:fPct});
+  lampSlider(a,'px_cell',{n:'Ячейка',min:2,max:40,v:6,step:1,f:v=>v+' px'});
+  lampSlider(a,'px_adapt',{n:'Тень крупнее',min:0,max:100,v:70,step:5,f:fPct});
+  lampSlider(a,'px_ratio',{n:'Вытянутость',min:0,max:100,v:35,step:5,f:fPct});
+  lampSlider(a,'px_gap',{n:'Щель',min:0,max:100,v:35,step:5,f:fPct});
+  lampSlider(a,'px_brick',{n:'Кирпич',min:0,max:100,v:100,step:5,f:fPct});
+  lampSlider(a,'px_glint',{n:'Блик',min:0,max:100,v:55,step:5,f:fPct});
+  const c=sec('Цвет');
+  lampSlider(c,'px_post',{n:'Ступени',min:0,max:16,v:0,step:1,f:v=>v<2?'нет':v});
+  lampSlider(c,'px_sat',{n:'Насыщ.',min:-100,max:100,v:20,step:5,f:v=>(v>0?'+':'')+v+'%'});
+  const l=sec('Штрихи в тени');
+  lampSlider(l,'px_lines',{n:'Штрихи',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(l,'px_lhue',{n:'Цвет',min:0,max:355,v:190,step:5,f:v=>v+'°'});
+  lampSlider(l,'px_ldrift',{n:'Дрейф',min:0,max:100,v:30,step:5,f:fPct});
+  const m=sec('Движение');
+  lampSlider(m,'px_wave',{n:'Волна',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(m,'px_wfreq',{n:'Частота',min:1,max:40,v:6,step:1,f:v=>v});
+  lampSlider(m,'px_wspd',{n:'Скорость',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(m,'px_smear',{n:'Размазка',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(m,'px_ring',{n:'Кольца',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(m,'px_beat',{n:'По басу',min:0,max:100,v:0,step:5,f:fPct});
+  const STY={'LED':{cell:6,adapt:70,ratio:35,gap:35,brick:100,glint:55,post:0,sat:20,lines:40,lhue:190,ldrift:30,wave:0,smear:0,ring:0},
+    'Мозаика':{cell:9,adapt:100,ratio:20,gap:10,brick:0,glint:15,post:6,sat:30,lines:20,wave:0,smear:0,ring:0},
+    'Глитч':{cell:5,adapt:60,ratio:60,gap:30,brick:100,glint:40,sat:40,lines:55,wave:35,wfreq:9,wspd:45,smear:35,ring:0,beat:60},
+    'Туннель':{cell:5,adapt:50,ratio:10,gap:40,brick:0,glint:40,sat:30,lines:80,lhue:200,ldrift:15,wave:0,smear:0,ring:60},
+    'Пиксель-арт':{cell:12,adapt:0,ratio:0,gap:0,brick:0,glint:0,post:5,sat:25,lines:0,wave:0,smear:0,ring:0}};
+  Object.keys(STY).forEach(n=>{const b=document.createElement('button');b.type='button';b.id='px_sty_'+Object.keys(STY).indexOf(n);b.textContent=n;b.title='Готовый стиль «'+n+'» — дальше крути бегунки';
+    b.addEventListener('click',()=>{const D0={mix:100,cell:6,adapt:70,ratio:35,gap:35,brick:100,glint:55,post:0,sat:20,lines:40,lhue:190,ldrift:30,wave:0,wfreq:6,wspd:40,smear:0,ring:0,beat:0};Object.entries(Object.assign(D0,STY[n])).forEach(([k,v])=>{const o=S['px_'+k];if(o){o.el.value=v;o.el.dispatchEvent(new Event('input',{bubbles:true}));}});if(!pxOn()){LST.v.px_on=1;lstSave();pxUI();}dirty=6;});pr.append(b);});
+  $('panel').append(box);
+  const pxPlace=()=>{if(box.hidden)return;if(window.innerWidth<=700){box.style.left=box.style.right='';return;}const pr=panelEl.getBoundingClientRect();
+    const side=pr.left>200;box.style.right='';box.style.left=side?Math.max(12,pr.left-box.offsetWidth-12)+'px':'12px';};
+  window.addEventListener('resize',pxPlace);
+  const pxUI=()=>{pxPlace();const v=pxOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('pxbtn').setAttribute('aria-pressed',v||!box.hidden);$('pxbtn').classList.toggle('pxon',v);};
+  on.addEventListener('click',()=>{LST.v.px_on=pxOn()?0:1;lstSave();pxUI();dirty=6;});
+  $('pxbtn').addEventListener('click',()=>{if(GP.learn)return;box.hidden=!box.hidden;pxUI();pxPlace();});
+  cl.addEventListener('click',()=>{box.hidden=true;pxUI();});
+  box.addEventListener('input',()=>{dirty=6;});
+  // a hidden "on" slider-less toggle still needs to be bindable: the Вкл button has an id, so 🎮 can bind it
+  window.pxUI=pxUI;pxUI();}
 requestAnimationFrame(frame);
 })();
 </script>
