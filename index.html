@@ -184,12 +184,13 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 @container (max-width:340px){.lsl{grid-template-columns:50px minmax(0,1fr) 22px 44px 22px}.lsl .st{display:none}.lsl .rb,.lsl .db{width:22px}.lamphd .lall{padding:6px 4px}}#lamp>.pnl:first-child{grid-column:1/-1}
 #tip{position:fixed;z-index:50;max-width:300px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:#0b0f18f2;color:var(--ice,#dfe7f5);font-size:11.5px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(-2px);transition:opacity .12s,transform .12s;box-shadow:0 6px 18px #0008}
 #tip.on{opacity:1;transform:none}
-#pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
-#pxp[hidden]{display:none}#pxp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle{flex:1}
+#skp,#pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
+#pxp[hidden],#skp[hidden]{display:none}#pxp .lamphd button,#skp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle,#skp .ptitle{flex:1}
+#sk_onb[aria-pressed="true"],#skbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}#skp{width:330px}
 #px_son[aria-pressed="true"],#pxp .lampm button[aria-pressed="true"],#px_onb[aria-pressed="true"],#pxbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}
 .pxpre{flex-wrap:wrap}.pxpre .dim{flex:0 0 100%;font-size:11px}.pxpre button{flex:1 1 auto;padding:6px 6px;font-size:11px}
 .pxsec{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:6px}.pxh{font-size:11px;color:var(--haze)}
-@media (max-width:700px){#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
+@media (max-width:700px){#skp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
 #verrow{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 0 4px}#ver{font-size:10px;color:var(--haze);opacity:.6}
 #upd{font-size:10px;padding:3px 8px}
 #updbar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;border:1px solid var(--cr);border-radius:6px;background:#0b0f18f5;font-size:12px;box-shadow:0 8px 24px #000a}
@@ -278,6 +279,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
       <button id="full" type="button" aria-label="Во весь экран">⛶</button>
       <button id="out" type="button" aria-pressed="false" title="Картинка — в отдельное окно на второй экран" aria-label="Вывести картинку на второй экран">⧉</button>
       <button id="pxbtn" type="button" aria-pressed="false" title="Пиксели — LED / мозаика / штрихи: открыть настройки">▦</button>
+      <button id="skbtn" type="button" aria-pressed="false" title="Скетч — бледная кожа, заплатки, царапины, значки, меловая обводка: открыть настройки">✎</button>
       <button id="gp" type="button" aria-pressed="false" aria-label="Геймпад: привязать управление">🎮</button>
     </div>
     <div id="gph" hidden></div>
@@ -310,7 +312,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.33</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.34</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -455,8 +457,50 @@ void main(){vec2 p=gl_FragCoord.xy,c0=uRes*.5;float cell=max(1.,uA.x);
   vec3 o=tx(p);float km=1.;
   if(uE.z!=0.){float ws=max(.004,uE.w),lo=lum(o),th=(1.-abs(uE.z))*(1.+2.*ws)-ws;km=smoothstep(th-ws,th+ws,uE.z>0.?lo:1.-lo);}
   gl_FragColor=vec4(mix(o,col,uC.w*km),1.);}`;
+// "Скетч": face-diary look — pale skin, tinted shadows, pixel patches, scratches, little marks, jittery white chalk outlines.
+const FSK=`precision highp float;
+uniform sampler2D uTex;uniform vec2 uRes;uniform float uT;
+uniform vec4 uA;uniform vec4 uB;uniform vec4 uC;uniform vec4 uD;uniform vec4 uE;uniform vec4 uF;
+float h1(float n){return fract(sin(n*127.1+.3)*43758.5453);}
+float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec3 hue(float h){return clamp(abs(mod(h*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+vec3 tx(vec2 p){return texture2D(uTex,clamp(p/uRes,vec2(0.),vec2(1.))).rgb;}
+float seg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);return length(pa-ba*h);}
+void main(){vec2 p=gl_FragCoord.xy;float k=uRes.y/1080.,sd=uE.y;
+  vec3 o=tx(p),col=o;float L=lum(o);
+  // where the marks may appear (light/dark key, like «Свет» elsewhere)
+  float km=1.;if(uE.z!=0.){float ws=max(.004,uE.w),th=(1.-abs(uE.z))*(1.+2.*ws)-ws;km=smoothstep(th-ws,th+ws,uE.z>0.?L:1.-L);}
+  // colour: pale skin, tinted shadows, contrast
+  col=mix(col,vec3(L)*vec3(1.,.97,.95)+.08,uA.x*smoothstep(.25,.75,L));
+  col+=hue(uA.z)*uA.y*.45*(1.-smoothstep(0.,.55,L));
+  col=clamp((col-.5)*(1.+uA.w)+.5,0.,1.);
+  // pixel patches
+  if(uB.x>0.){float cs=(30.+uB.y*120.)*k;vec2 ci=floor(p/cs);float r=h2(ci+sd*.37);
+    if(r<uB.x*.85){vec2 f=fract(p/cs);vec2 a=vec2(h2(ci+1.3+sd),h2(ci+2.7+sd))*.4,b=a+.35+vec2(h2(ci+4.1+sd),h2(ci+5.3))*.5;
+      if(f.x>a.x&&f.y>a.y&&f.x<b.x&&f.y<b.y){float pb=max(2.,uB.z*14.*k+2.);vec3 q=tx((floor(p/pb)+.5)*pb);float ql=lum(q);
+        col=mix(col,mix(q*1.3,vec3(ql)*.25+vec3(.86,.84,.88),.65),km*smoothstep(.04,.2,ql));}}}
+  // scratches: short hatch strokes per cell
+  if(uC.x>0.){float cs=28.*k;vec2 ci=floor(p/cs);
+    for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){vec2 c=ci+vec2(float(i),float(j));float r=h2(c+sd*1.7);
+      if(r<uC.x*.55){vec2 a=(c+vec2(h2(c+.1+sd),h2(c+.2+sd)))*cs;float ang=h2(c+.3)*6.2832,ln=(6.+uC.y*60.*h2(c+.4+sd))*k;
+        vec2 b=a+vec2(cos(ang),sin(ang))*ln;float d=seg(p,a,b);float w=.9*k+.4;
+        float m=(1.-smoothstep(w,w+1.,d))*km;vec3 sc=mix(hue(fract(uC.z+(h2(c+.5)-.5)*.12)),vec3(1.),.25)*(.6+.4*h2(c+.6));col=mix(col,sc,m*.9);}}}
+  // little marks: squares and crosses
+  if(uC.w>0.){float cs=22.*k;vec2 ci=floor(p/cs),f=fract(p/cs)*cs;float r=h2(ci+sd*2.3);
+    if(r<uC.w*.5){vec2 c=vec2(h2(ci+.7),h2(ci+.9))*(cs-8.*k)+4.*k;vec2 d=abs(f-c);float sz=(1.5+2.5*h2(ci+1.1))*k;
+      float m=h2(ci+1.5)<.6?step(max(d.x,d.y),sz):(step(d.x,.6*k)*step(d.y,sz*1.6)+step(d.y,.6*k)*step(d.x,sz*1.6));
+      col=mix(col,mix(vec3(.25,.3,1.),vec3(.9,.3,.5),step(.8,h2(ci+1.9))),clamp(m,0.,1.)*km);}}
+  // chalk outlines: jittery edge detection
+  if(uD.x>0.||uD.y>0.){vec2 j=(vec2(h2(floor(p/(6.*k))+sd),h2(floor(p/(6.*k))+sd+9.))-.5)*uD.z*6.*k;vec2 q=p+j;float e=1.5*k;
+    float tl=lum(tx(q+vec2(-e,e))),t0=lum(tx(q+vec2(0.,e))),tr=lum(tx(q+vec2(e,e))),ml=lum(tx(q+vec2(-e,0.))),mr=lum(tx(q+vec2(e,0.))),bl=lum(tx(q+vec2(-e,-e))),b0=lum(tx(q+vec2(0.,-e))),br=lum(tx(q+vec2(e,-e)));
+    float gx=tr+2.*mr+br-tl-2.*ml-bl,gy=tl+2.*t0+tr-bl-2.*b0-br,g=length(vec2(gx,gy));
+    float ed=smoothstep(.25,.6,g)*(.75+.25*h2(floor(p/(2.*k))+sd));
+    float fl=uE.x;col=mix(col,col*(1.-uD.y),max(uD.y,fl));col=mix(col,vec3(1.),ed*clamp(uD.x+fl,0.,1.));}
+  gl_FragColor=vec4(mix(o,col,uF.x),1.);}`;
 const U=(p,n)=>gl.getUniformLocation(p,n);
-const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD),PPX=prog(FPX);
+const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD),PPX=prog(FPX),PSK=prog(FSK);
+const usk={tex:U(PSK,'uTex'),res:U(PSK,'uRes'),t:U(PSK,'uT'),A:U(PSK,'uA'),B:U(PSK,'uB'),C:U(PSK,'uC'),D:U(PSK,'uD'),E:U(PSK,'uE'),F:U(PSK,'uF')};
 const upx={tex:U(PPX,'uTex'),res:U(PPX,'uRes'),t:U(PPX,'uT'),A:U(PPX,'uA'),B:U(PPX,'uB'),C:U(PPX,'uC'),D:U(PPX,'uD'),E:U(PPX,'uE')};
 const ua={res:U(PA,'uRes'),u:U(PA,'uU'),look:U(PA,'uLook')};
 const ub={res:U(PB,'uRes'),fit:U(PB,'uFit'),z:U(PB,'uZ'),s:U(PB,'uS'),p:U(PB,'uP'),b:U(PB,'uB'),m:U(PB,'uM'),caR:U(PB,'uCaR'),caP:U(PB,'uCaP'),caQ:U(PB,'uCaQ'),caS:U(PB,'uCaS'),caH:U(PB,'uCaH'),caF:U(PB,'uCaF'),caK:U(PB,'uCaK'),caU:U(PB,'uCaU'),frR:U(PB,'uFrR'),frA:U(PB,'uFrA')};
@@ -468,7 +512,7 @@ gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
 
 function texParams(){gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);}
-let scene=null,fbs=[],W=0,H=0,pi=0,skipFr=2;
+let scene=null,fbs=[],fbx=null,W=0,H=0,pi=0,skipFr=2;
 function target(){const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);texParams();
   const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);
@@ -499,7 +543,7 @@ function resize(force){
   if(w===W&&h===H&&!force)return;
   W=w;H=h;canvas.width=W;canvas.height=H;
   [scene,...fbs].forEach(o=>{if(o){gl.deleteFramebuffer(o.f);gl.deleteTexture(o.tex);}});
-  scene=target();fbs=[target(),target(),target()];pi=0;dirty=10;skipFr=2;
+  scene=target();fbs=[target(),target(),target()];fbx=target();pi=0;dirty=10;skipFr=2;
 }
 function upload(src,tex){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
   try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);}catch(e){}
@@ -1173,7 +1217,11 @@ function frame(now){
     const x=ai;ai=ni;ni=x;});
   bind(SRC[ED].st);if(skipFr>0)skipFr--;
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[ai].tex);
-  if(typeof pxOn==='function'&&pxOn()){gl.useProgram(PPX);pxUniforms(t);}
+  const fxP=typeof pxOn==='function'&&pxOn(),fxS=typeof skOn==='function'&&skOn();
+  if(fxP&&fxS){gl.bindFramebuffer(gl.FRAMEBUFFER,fbx.f);gl.useProgram(PPX);pxUniforms(t);gl.drawArrays(gl.TRIANGLES,0,3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.bindTexture(gl.TEXTURE_2D,fbx.tex);gl.useProgram(PSK);skUniforms(t);}
+  else if(fxP){gl.useProgram(PPX);pxUniforms(t);}
+  else if(fxS){gl.useProgram(PSK);skUniforms(t);}
   else{gl.useProgram(PC);gl.uniform1i(uc.tex,0);gl.uniform2f(uc.res,W,H);}
   gl.drawArrays(gl.TRIANGLES,0,3);
   pi=ai;
@@ -1654,6 +1702,12 @@ const TIPS={
  clips:'Клиппинг · Насыщенность — как меняется цвет у каждой следующей копии.',
  gain:'Усиление — дополнительный прирост яркости на каждом шаге каскада.',
  'px:svol':'Громкость звука тока.','px:ssens':'Чувствительность: насколько сильно должен измениться участок кадра, чтобы прозвучал звучок. Больше — реагирует на мелкие изменения.','px:sdens':'Густота — сколько звучков рождает каждый изменившийся участок. Большая площадь изменений → россыпь, маленькая → пара щелчков.','px:spitch':'Высота — базовый тон всех звучков.','px:sspread':'Разброс — насколько верх кадра звучит выше низа. 0 — все звучки одной высоты.','px:slen':'Длина одного звучка: от щелчка до протяжного разряда.','px:swidth':'Стерео — участки слева звучат слева, справа — справа. 0 — всё по центру.','px:sgrit':'Треск — сколько искр (Ток), грязи (Цифра) или расстройки (Стекло).','px:sback':'Обратно — громкость звучков от светлеющих участков (нарастают и идут вверх). «нет» — только удары.','px:shum':'Гул — фоновое электрическое гудение, тем громче и ярче, чем больше освещённой площади.',
+ 'sk:mix':'Сила — смесь скетча с обычной картинкой.','sk:light':'Где появляются метки: ☀ — на светлом (кожа, лицо), ☾ — на тёмном, «везде».','sk:lsoft':'Плавность границы зоны меток.','sk:fps':'Кадры — как часто метки и обводка «перерисовываются». Мало — рывками, как анимация от руки.',
+ 'sk:pale':'Бледность — светлые места становятся мертвенно-бледными.','sk:tint':'Тени — подкрашивает тёмные места цветом.','sk:thue':'Цвет теней (240° — синий).','sk:con':'Контраст.',
+ 'sk:patch':'Заплатки — прямоугольные куски пиксельной светлой мозаики на коже.','sk:psize':'Размер заплаток.','sk:ppix':'Крупность пикселей внутри заплаток.',
+ 'sk:scr':'Царапины — короткие штрихи-штриховка по коже.','sk:slen':'Длина царапин.','sk:shue':'Цвет царапин.','sk:glyph':'Значки — мелкие квадратики и крестики.',
+ 'sk:edge':'Обводка — белые меловые линии по контурам.','sk:dark':'Тьма — всё, кроме обводки, уходит в чёрное (как кадр со скелетом).','sk:jit':'Дрожь — линии дрожат, как нарисованные от руки.',
+ 'sk:flash':'Вспышки — на долях такта случайно вспыхивает меловая обводка на чёрном.','sk:beat':'По басу — вспышки обводки от баса (нужен микрофон).',
  'px:mix':'Сила — смесь эффекта с обычной картинкой.','px:light':'Свет — где работает эффект: ☀ — только на светлых местах, ☾ — только на тёмных, «везде» — на всём кадре. Чем больше %, тем больше площадь.','px:lsoft':'Смягчение — плавность перехода между зоной с эффектом и без.','px:cell':'Ячейка — размер одной «лампочки» мозаики (для Full HD).',
  'px:adapt':'Тень крупнее — в тёмных местах ячейки укрупняются в 2 и 4 раза, на светлом остаются мелкими (как на лице в примере).',
  'px:ratio':'Вытянутость — ячейка из квадрата становится горизонтальной чёрточкой.','px:gap':'Щель — тёмный зазор между ячейками, как у LED-экрана.',
@@ -1687,6 +1741,7 @@ const tipFor=el=>{if(!el)return '';
   const row=el.closest('.sl');if(row){const i=row.querySelector('input[type=range][id]');if(!i)return '';const rid=i.id;
     let m=rid.match(/^lamp2?_(\w+)$/);if(m)return TIPS['lamp:'+m[1]]||'';
     m=rid.match(/^px_(\w+)$/);if(m)return TIPS['px:'+m[1]]||'';
+    m=rid.match(/^sk_(\w+)$/);if(m)return TIPS['sk:'+m[1]]||'';
     m=rid.match(/^au_(\w+)$/);if(m)return TIPS['au:'+m[1]]||'';
     m=rid.match(/^ca_(\w+)$/);if(m)return TIPS[(typeof TAB!=='undefined'?TAB:'ca')+':'+m[1]]||TIPS[m[1]]||'';
     return TIPS[rid]||'';}
@@ -1755,8 +1810,11 @@ function pxUniforms(t){const k=H/1080,bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if
   Object.keys(STY).forEach(n=>{const b=document.createElement('button');b.type='button';b.id='px_sty_'+Object.keys(STY).indexOf(n);b.textContent=n;b.title='Готовый стиль «'+n+'» — дальше крути бегунки';
     b.addEventListener('click',()=>{const D0={light:0,lsoft:30,mix:100,cell:6,adapt:70,ratio:35,gap:35,brick:100,glint:55,post:0,sat:20,lines:40,lhue:190,ldrift:30,wave:0,wfreq:6,wspd:40,smear:0,ring:0,beat:0};Object.entries(Object.assign(D0,STY[n])).forEach(([k,v])=>{const o=S['px_'+k];if(o){o.el.value=v;o.el.dispatchEvent(new Event('input',{bubbles:true}));}});if(!pxOn()){LST.v.px_on=1;lstSave();pxUI();}dirty=6;});pr.append(b);});
   $('panel').append(box);
-  const pxPlace=()=>{if(box.hidden)return;if(window.innerWidth<=700){box.style.left=box.style.right='';return;}const pr=panelEl.getBoundingClientRect();
-    const side=pr.left>200;box.style.right='';box.style.left=side?Math.max(12,pr.left-box.offsetWidth-12)+'px':'12px';};
+  // effect windows line up left of the menu: Пиксели next to it, Скетч next to that
+  window.fxPlace=()=>{if(window.innerWidth<=700){['pxp','skp'].forEach(id=>{const w=$(id);if(w)w.style.left='';});return;}
+    const pr=panelEl.getBoundingClientRect(),side=pr.left>200;let x=side?pr.left-12:12;
+    ['pxp','skp'].forEach(id=>{const w=$(id);if(!w||w.hidden)return;if(side){x-=w.offsetWidth;w.style.left=Math.max(12,x)+'px';x-=12;}else{w.style.left=x+'px';x+=w.offsetWidth+12;}});};
+  const pxPlace=()=>window.fxPlace();
   window.addEventListener('resize',pxPlace);
   const pxUI=()=>{pxPlace();const v=pxOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('pxbtn').setAttribute('aria-pressed',v||!box.hidden);$('pxbtn').classList.toggle('pxon',v);};
   on.addEventListener('click',()=>{LST.v.px_on=pxOn()?0:1;lstSave();pxUI();dirty=6;});
@@ -1857,6 +1915,64 @@ setInterval(()=>{if(!LST.v.px_son||!ZAP.ctx)return;const L=zGrid();if(!L)return;
   const burst=isUp=>{const c=zapCtx();c.resume();ZAP.out.gain.value=zv('svol')/100;const n=Math.round(4+zv('sdens')/100*30),gs=.55/Math.sqrt(1+n*.5);
     for(let k=0;k<n;k++)grain(Math.random(),Math.random(),.5+Math.random()*.5,isUp,c.currentTime+.01+Math.random()*.25,gs);};
   t1.addEventListener('click',()=>burst(false));t2.addEventListener('click',()=>burst(true));ui();}
+
+// ---- «Скетч» window
+const SKV=id=>S['sk_'+id]?+S['sk_'+id].el.value:0;
+function skOn(){return !!(LST.v.sk_on);}
+let skSeed=0,skLast=0,skFlash=0,skBeat=-1;
+function skUniforms(t){const now=performance.now(),fps=SKV('fps');if(now-skLast>1000/Math.max(1,fps)){skLast=now;skSeed=(skSeed+1)%911;}
+  const bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if(bt!==skBeat){skBeat=bt;if(Math.random()<SKV('flash')/100)skFlash=1;}
+  if(AU.on&&SKV('beat')>0&&(AU.lv[0]||0)>.7&&Math.random()<SKV('beat')/100*.3)skFlash=1;
+  const fl=skFlash;skFlash*=.55;if(skFlash<.02)skFlash=0;
+  gl.uniform1i(usk.tex,0);gl.uniform2f(usk.res,W,H);gl.uniform1f(usk.t,t);
+  gl.uniform4f(usk.A,SKV('pale')/100,SKV('tint')/100,SKV('thue')/360,SKV('con')/100);
+  gl.uniform4f(usk.B,SKV('patch')/100,SKV('psize')/100,SKV('ppix')/100,0);
+  gl.uniform4f(usk.C,SKV('scr')/100,SKV('slen')/100,SKV('shue')/360,SKV('glyph')/100);
+  gl.uniform4f(usk.D,SKV('edge')/100,SKV('dark')/100,SKV('jit')/100,0);
+  gl.uniform4f(usk.E,fl,skSeed,SKV('light')/100,SKV('lsoft')/200);gl.uniform4f(usk.F,SKV('mix')/100,0,0,0);}
+{const box=document.createElement('div');box.id='skp';box.className='fxwin';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-label','Скетч');
+  const hd=document.createElement('div');hd.className='bar lamphd';const tt=document.createElement('span');tt.className='ptitle';tt.textContent='✎ Скетч';
+  const on=document.createElement('button');on.type='button';on.id='sk_onb';on.textContent='Выкл';on.title='Включить / выключить эффект';
+  const cl=document.createElement('button');cl.type='button';cl.id='sk_close';cl.textContent='✕';cl.title='Закрыть окно (эффект остаётся)';hd.append(tt,on,cl);box.append(hd);
+  const pr=document.createElement('div');pr.className='lampm pxpre';const pl=document.createElement('span');pl.className='dim';pl.textContent='Стиль';pr.append(pl);box.append(pr);
+  const sec=t=>{const d=document.createElement('div');d.className='pxsec';const h=document.createElement('div');h.className='pxh';h.textContent=t;d.append(h);box.append(d);return d;};
+  const a=sec('Общее');
+  lampSlider(a,'sk_mix',{n:'Сила',min:0,max:100,v:100,step:5,f:fPct});
+  lampSlider(a,'sk_light',{n:'Свет',min:-100,max:100,v:70,step:5,f:v=>v===0?'везде':v>0?'☀ '+v+'%':'☾ '+(-v)+'%'});
+  lampSlider(a,'sk_lsoft',{n:'Смягч.',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(a,'sk_fps',{n:'Кадры',min:1,max:30,v:8,step:1,f:v=>v+' /с'});
+  const c=sec('Цвет');
+  lampSlider(c,'sk_pale',{n:'Бледность',min:0,max:100,v:45,step:5,f:fPct});
+  lampSlider(c,'sk_tint',{n:'Тени',min:0,max:100,v:35,step:5,f:fPct});
+  lampSlider(c,'sk_thue',{n:'Цвет теней',min:0,max:355,v:240,step:5,f:v=>v+'°'});
+  lampSlider(c,'sk_con',{n:'Контраст',min:-50,max:100,v:20,step:5,f:v=>(v>0?'+':'')+v+'%'});
+  const g=sec('Метки на лице');
+  lampSlider(g,'sk_patch',{n:'Заплатки',min:0,max:100,v:45,step:5,f:fPct});
+  lampSlider(g,'sk_psize',{n:'Размер',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(g,'sk_ppix',{n:'Пиксель',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(g,'sk_scr',{n:'Царапины',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(g,'sk_slen',{n:'Длина',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(g,'sk_shue',{n:'Цвет',min:0,max:355,v:245,step:5,f:v=>v+'°'});
+  lampSlider(g,'sk_glyph',{n:'Значки',min:0,max:100,v:40,step:5,f:fPct});
+  const e=sec('Меловая обводка');
+  lampSlider(e,'sk_edge',{n:'Обводка',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(e,'sk_dark',{n:'Тьма',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(e,'sk_jit',{n:'Дрожь',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(e,'sk_flash',{n:'Вспышки',min:0,max:100,v:0,step:5,f:fPct});
+  lampSlider(e,'sk_beat',{n:'По басу',min:0,max:100,v:0,step:5,f:fPct});
+  const STY={'Дневник':{},'Мел':{pale:0,tint:0,con:30,patch:0,scr:0,glyph:0,edge:100,dark:92,jit:55,fps:10,light:0},
+    'Глитч-лицо':{pale:55,patch:80,psize:45,ppix:60,scr:25,glyph:70,edge:20,jit:30,flash:35,fps:12},
+    'Вспышки мела':{edge:0,dark:0,flash:45,beat:50,jit:60},'Только цвет':{patch:0,scr:0,glyph:0,edge:0,dark:0,flash:0}};
+  const D0={mix:100,light:70,lsoft:30,fps:8,pale:45,tint:35,thue:240,con:20,patch:45,psize:30,ppix:40,scr:40,slen:30,shue:245,glyph:40,edge:0,dark:0,jit:40,flash:0,beat:0};
+  Object.keys(STY).forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.id='sk_sty_'+i;b.textContent=n;b.title='Готовый стиль «'+n+'» — дальше крути бегунки';
+    b.addEventListener('click',()=>{Object.entries(Object.assign({},D0,STY[n])).forEach(([k,v])=>{const o=S['sk_'+k];if(o){o.el.value=v;o.el.dispatchEvent(new Event('input',{bubbles:true}));}});if(!skOn()){LST.v.sk_on=1;lstSave();ui();}dirty=6;});pr.append(b);});
+  $('panel').append(box);
+  const place=()=>window.fxPlace();
+  window.addEventListener('resize',place);
+  const ui=()=>{place();const v=skOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('skbtn').setAttribute('aria-pressed',v||!box.hidden);$('skbtn').classList.toggle('pxon',v);};
+  on.addEventListener('click',()=>{LST.v.sk_on=skOn()?0:1;lstSave();ui();dirty=6;});
+  $('skbtn').addEventListener('click',()=>{if(GP.learn)return;box.hidden=!box.hidden;ui();});
+  cl.addEventListener('click',()=>{box.hidden=true;ui();});box.addEventListener('input',()=>{dirty=6;});ui();}
 requestAnimationFrame(frame);
 })();
 </script>
