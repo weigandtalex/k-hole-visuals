@@ -190,7 +190,10 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 .cat .fxin{position:static!important;width:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:0!important;padding:0!important;background:none!important}
 .fxin .lamphd .ptitle,#px_close,#sk_close,#tr_close{display:none!important}.fxin .lamphd{justify-content:flex-end}
 .cat.fxon>.cath::after{content:' ●';color:var(--cr)}
-.cath,.foldh{touch-action:none}
+.cath{display:flex;align-items:center;gap:6px;width:fit-content;max-width:55%;min-height:40px;margin:8px 0;padding:8px 14px 8px 10px;border:1px solid #ffffff38;border-radius:6px;background:#ffffff12;touch-action:manipulation}
+.cath:hover{border-color:var(--haze)}.cat:not(.fold)>.cath{border-color:var(--ice);background:#ffffff14}
+.pxh.foldh,.cgt.foldh{width:fit-content;max-width:55%;min-height:32px;display:flex;align-items:center;padding:5px 12px 5px 8px;margin:2px 0;border:1px solid #ffffff2a;border-radius:5px;background:#ffffff0c;touch-action:manipulation}
+.pxsec:not(.fold)>.pxh.foldh,.cgrp:not(.fold)>.cgt.foldh{border-color:var(--haze)}
 #tr_onb[aria-pressed="true"],#trbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}#trp{width:330px}
 #mute.muted{color:#ff7a7a;border-color:#ff7a7a}
 #sk_onb[aria-pressed="true"],#skbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}#skp{width:330px}
@@ -329,7 +332,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.40</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.41</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -597,9 +600,11 @@ const SRC=Array(8).fill(null);let MAIN=0,ED=0,pending=-1;
 const M=()=>{const s=SRC[MAIN];return s&&s.kind!=='demo'?s:null;};
 const asp=s=>(!s||s.kind==='demo')?W/H:s.w/s.h;
 const appEl=document.getElementById('app'),panelEl=document.getElementById('panel'),narrow=window.matchMedia('(max-width:859px)');
+var PHV=0;
 function fitView(){
   if(appEl.classList.contains('ctl')){view.style.flex='';view.style.minHeight='';panelEl.style.maxHeight='';panelEl.style.flex='';panelEl.style.minHeight='';return;}
   if(appEl.classList.contains('full')){view.style.flex='';view.style.minHeight='';return;}
+  if(PHV&&!SIDE.matches){view.style.flex='1 1 0';view.style.minHeight='60px';panelEl.style.maxHeight='none';panelEl.style.flex='0 0 '+PHV+'px';panelEl.style.minHeight='0';return;}
   const media=M();
   if(media&&narrow.matches){const ah=appEl.clientHeight,z=1-(S.pad?+S.pad.el.value:20)/100,want=appEl.clientWidth/(media.w/media.h)*z;
     const h=Math.round(Math.min(ah*.6,Math.max(ah*.34,want)));
@@ -1534,15 +1539,15 @@ function wideSet(on){if(on===WIDE.on)return;
 function wideCheck(){const w=panelEl.clientWidth,ok=SIDE.matches&&!appEl.classList.contains('ctl')&&!appEl.classList.contains('full');
   const want=!ok?false:w>=1250?3:w>=800?2:false;if(want!==WIDE.on)wideSet(want);}
 {const sp=$('split'),pn=panelEl;let PW=380;try{PW=+localStorage.getItem('kh_pw')||380;localStorage.removeItem('kh_pz');}catch(_){}
-  let PH=0;try{PH=+localStorage.getItem('kh_ph')||0;}catch(_){}
-  const setH=h=>{if(h)PH=Math.round(Math.min(window.innerHeight*.85,Math.max(110,h)));if(!SIDE.matches&&PH){pn.style.flex='0 0 '+PH+'px';pn.style.maxHeight='none';}$('view').style.minHeight=(!SIDE.matches&&PH)?'10%':'';try{localStorage.setItem('kh_ph',PH);}catch(_){}resize();};
-  const setW=w=>{const mx=Math.max(260,window.innerWidth*.82);PW=Math.round(Math.min(mx,Math.max(260,w)));PANW=SIDE.matches?PW:0;if(SIDE.matches){pn.style.flex='0 0 '+PW+'px';pn.style.maxHeight='';}else{pn.style.flex='';pn.style.maxHeight='';if(PH){pn.style.flex='0 0 '+PH+'px';pn.style.maxHeight='none';}}pn.style.zoom='';try{localStorage.setItem('kh_pw',PW);}catch(_){}wideCheck();resize();};
+  let PH=0;try{PH=+localStorage.getItem('kh_ph')||0;}catch(_){}PHV=PH;
+  const setH=h=>{if(h)PH=Math.round(Math.min(window.innerHeight*.85,Math.max(110,h)));PHV=PH;try{localStorage.setItem('kh_ph',PH);}catch(_){}resize();};
+  const setW=w=>{const mx=Math.max(260,window.innerWidth*.82);PW=Math.round(Math.min(mx,Math.max(260,w)));PANW=SIDE.matches?PW:0;if(SIDE.matches){pn.style.flex='0 0 '+PW+'px';pn.style.maxHeight='';}else{pn.style.flex='';pn.style.maxHeight='';}pn.style.zoom='';try{localStorage.setItem('kh_pw',PW);}catch(_){}wideCheck();resize();};
   setW(PW);SIDE.addEventListener&&SIDE.addEventListener('change',()=>setW(PW));
   let x0=0,w0=380,on=false,y0=0,h0=0;
   sp.addEventListener('pointerdown',e=>{on=true;x0=e.clientX;w0=PW;y0=e.clientY;h0=pn.getBoundingClientRect().height;sp.classList.add('drag');try{sp.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();});
   sp.addEventListener('pointermove',e=>{if(!on)return;if(SIDE.matches)setW(w0+(x0-e.clientX));else setH(h0+(y0-e.clientY));});
   const end=()=>{on=false;sp.classList.remove('drag');};sp.addEventListener('pointerup',end);sp.addEventListener('pointercancel',end);
-  sp.addEventListener('dblclick',()=>{if(SIDE.matches)setW(380);else{PH=0;try{localStorage.removeItem('kh_ph');}catch(_){}setW(PW);resize();}});window.addEventListener('resize',wideCheck);}
+  sp.addEventListener('dblclick',()=>{if(SIDE.matches)setW(380);else{PH=0;PHV=0;try{localStorage.removeItem('kh_ph');}catch(_){}setW(PW);resize();}});window.addEventListener('resize',wideCheck);}
 
 // ---- Second screen: the picture goes to its own window (live stream of the canvas); this window becomes a 3-column control desk
 {const ob=$('out');let ORD=null,COLS=null,STR=null,poll=0;
@@ -2260,14 +2265,7 @@ function setLang(l){LANG=l;try{localStorage.setItem('kh_lang',l);}catch(_){}docu
     const sync=()=>W.forEach(([id,,bid])=>{const c=catOf(id),b=$(bid);if(c&&c.querySelector&&b){const on=b.classList.contains('pxon');c.classList.toggle('fxon',on);b.setAttribute('aria-pressed',on);}});
     setInterval(sync,400);sync();}
   mkCat('Пресеты и файлы',[$('tools')],'tools');
-  // swipe a title down to open, up to close (taps still toggle)
-  {let y0=null,hd=null,sup=false;const HS='.cath,.pxh,.cgt,.pnl .ptitle';
-    const open=(h,v)=>{if(h.classList.contains('cath')){const c=h.parentNode;c.classList.toggle('fold',!v);h.setAttribute('aria-expanded',v);return;}
-      const b=h.classList.contains('ptitle')?h.closest('.pnl'):h.parentNode;if(b)b.classList.toggle('fold',!v);};
-    document.addEventListener('pointerdown',e=>{const h=e.target.closest(HS);if(!h||GP.learn)return;hd=h;y0=e.clientY;},true);
-    document.addEventListener('pointerup',e=>{if(!hd)return;const dy=e.clientY-y0,h=hd;hd=null;if(Math.abs(dy)<18)return;open(h,dy>0);sup=true;setTimeout(()=>{sup=false;},450);},true);
-    document.addEventListener('pointercancel',()=>{hd=null;},true);
-    document.addEventListener('click',e=>{if(sup&&e.target.closest(HS)){sup=false;e.stopPropagation();e.preventDefault();}},true);}
+
   // binding mode needs the controller maps on screen
   $('gp').addEventListener('click',()=>{const c=catOf('gph');if(c&&c.classList)c.classList.remove('fold');});
   wideCheck();}
