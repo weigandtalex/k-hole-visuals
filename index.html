@@ -279,6 +279,22 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
 .gpl .sl,.gpl #glob button,.gpl .bar button{outline:1px dashed rgba(255,255,255,.18);outline-offset:1px}
 .gpsel{outline:2px solid var(--cr)!important;outline-offset:1px}
 .gpb{box-shadow:inset 0 -2px 0 var(--cr)}
+
+/* ---- Capture One-style tool strips: full-width bars with a chevron, thin dark separators */
+.cat{border-top:0;border-bottom:1px solid #000}
+.cat .catrow{background:#ffffff0f}.cat+.cat{margin-top:-14px}
+.cat .cath{display:flex;align-items:center;gap:10px;width:100%;max-width:none;min-height:46px;margin:0;padding:10px 12px;border:0;border-radius:0;background:#ffffff0f;font-size:14px;letter-spacing:.02em;color:#e8ecf5;text-align:left}.cat .catrow .cath{background:none}
+.cat:not(.fold)>.cath{border:0;background:#ffffff0f}.cat:not(.fold)>.catrow>.cath{border:0;background:none}
+.catrow{gap:0;padding-right:8px}.catrow .cath{flex:1 1 auto}.catrow .catsw{min-width:58px;padding:6px 8px}
+.cat .cath::before,.cat.fold>.cath::before,.cat.fold>.catrow>.cath::before,.foldh::before,.fold>.foldh::before,.fold .foldh::before{content:'';flex:0 0 auto;width:6px;height:6px;margin:0 4px 0 2px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;opacity:.75;transform:rotate(45deg) translate(-2px,-2px);transition:transform .15s}
+.cat.fold>.cath::before,.cat.fold>.catrow>.cath::before,.fold>.foldh::before,.fold .foldh::before{transform:rotate(-45deg)}
+.foldh{display:flex;align-items:center;gap:8px}
+.cat .catb{padding:4px 2px 12px}
+.pxh.foldh,.cgt.foldh{width:100%;max-width:none;min-height:38px;margin:0;padding:6px 10px;border:0;border-radius:0;background:#ffffff08;font-size:12.5px;color:#d5dcea;letter-spacing:.02em}
+.pxsec:not(.fold)>.pxh.foldh,.cgrp:not(.fold)>.cgt.foldh{border:0;background:#ffffff0c}
+.pxsec{border-top:0;border-bottom:1px solid #0009;padding-top:0;gap:4px}.pxsec:not(.fold){padding-bottom:8px}
+.cgrp{border:0;border-bottom:1px solid #0009;padding:0;margin:0}.cgrp:not(.fold){padding-bottom:6px}.cgrp>.cgt{margin-bottom:0}
+.pnl .ptitle.foldh::before{margin-right:6px}
 </style>
 </head>
 <body>
@@ -339,7 +355,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.44</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.45</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
