@@ -184,14 +184,15 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 @container (max-width:340px){.lsl{grid-template-columns:50px minmax(0,1fr) 22px 44px 22px}.lsl .st{display:none}.lsl .rb,.lsl .db{width:22px}.lamphd .lall{padding:6px 4px}}#lamp>.pnl:first-child{grid-column:1/-1}
 #tip{position:fixed;z-index:50;max-width:300px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:#0b0f18f2;color:var(--ice,#dfe7f5);font-size:11.5px;line-height:1.45;pointer-events:none;opacity:0;transform:translateY(-2px);transition:opacity .12s,transform .12s;box-shadow:0 6px 18px #0008}
 #tip.on{opacity:1;transform:none}
-#skp,#pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
-#pxp[hidden],#skp[hidden]{display:none}#pxp .lamphd button,#skp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle,#skp .ptitle{flex:1}
+#trp,#skp,#pxp{position:fixed;left:12px;top:12px;z-index:30;width:340px;max-height:calc(100vh - 24px);overflow-y:auto;padding:10px;border:1px solid var(--line);border-radius:8px;background:#070a12f0;box-shadow:0 10px 30px #000a;display:flex;flex-direction:column;gap:8px}
+#pxp[hidden],#skp[hidden],#trp[hidden]{display:none}#pxp .lamphd button,#skp .lamphd button,#trp .lamphd button{flex:0 0 auto;padding:6px 10px}#pxp .ptitle,#skp .ptitle,#trp .ptitle{flex:1}
+#tr_onb[aria-pressed="true"],#trbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}#trp{width:330px}
 #mute.muted{color:#ff7a7a;border-color:#ff7a7a}
 #sk_onb[aria-pressed="true"],#skbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}#skp{width:330px}
 #px_son[aria-pressed="true"],#pxp .lampm button[aria-pressed="true"],#px_onb[aria-pressed="true"],#pxbtn.pxon{color:var(--void);background:var(--cr);border-color:var(--cr)}
 .pxpre{flex-wrap:wrap}.pxpre .dim{flex:0 0 100%;font-size:11px}.pxpre button{flex:1 1 auto;padding:6px 6px;font-size:11px}
 .pxsec{display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line);padding-top:6px}.pxh{font-size:11px;color:var(--haze)}
-@media (max-width:700px){#skp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
+@media (max-width:700px){#trp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}#skp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}#pxp{left:6px;right:6px;width:auto;top:auto;bottom:6px;max-height:55vh}}
 #verrow{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 0 4px}#ver{font-size:10px;color:var(--haze);opacity:.6}
 #upd{font-size:10px;padding:3px 8px}
 #updbar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:60;display:flex;gap:8px;align-items:center;padding:8px 10px 8px 14px;border:1px solid var(--cr);border-radius:6px;background:#0b0f18f5;font-size:12px;box-shadow:0 8px 24px #000a}
@@ -280,6 +281,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
       <button id="full" type="button" aria-label="Во весь экран">⛶</button>
       <button id="out" type="button" aria-pressed="false" title="Картинка — в отдельное окно на второй экран" aria-label="Вывести картинку на второй экран">⧉</button>
       <button id="pxbtn" type="button" aria-pressed="false" title="Пиксели — LED / мозаика / штрихи: открыть настройки">▦</button>
+      <button id="trbtn" type="button" aria-pressed="false" title="Шлейф — прошлые кадры тянутся следом и рассыпаются на частицы: открыть настройки">≋</button>
       <button id="mute" type="button" aria-pressed="false" title="Звук программы: вкл / выкл (удары тока, гул)">🔊</button>
       <button id="skbtn" type="button" aria-pressed="false" title="Скетч — бледная кожа, заплатки, царапины, значки, меловая обводка: открыть настройки">✎</button>
       <button id="gp" type="button" aria-pressed="false" aria-label="Геймпад: привязать управление">🎮</button>
@@ -314,7 +316,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.35</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.36</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -500,8 +502,39 @@ void main(){vec2 p=gl_FragCoord.xy;float k=uRes.y/1080.,sd=uE.y;
     float ed=smoothstep(.25,.6,g)*(.75+.25*h2(floor(p/(2.*k))+sd));
     float fl=uE.x;col=mix(col,col*(1.-uD.y),max(uD.y,fl));col=mix(col,vec3(1.),ed*clamp(uD.x+fl,0.,1.));}
   gl_FragColor=vec4(mix(o,col,uF.x),1.);}`;
+// "Шлейф": the previous frames are carried along a flow (direction / burst / swirl / chaotic stream), fade, and crumble into particles.
+const FTR=`precision highp float;
+uniform sampler2D uCur;uniform sampler2D uPrev;uniform vec2 uRes;uniform float uT;
+uniform vec4 uA;uniform vec4 uB;uniform vec4 uC;uniform vec4 uD;
+float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1,0)),f.x),mix(h2(i+vec2(0,1)),h2(i+vec2(1,1)),f.x),f.y);}
+float lum(vec3 c){return dot(c,vec3(.299,.587,.114));}
+vec3 cur(vec2 p){return texture2D(uCur,clamp(p/uRes,vec2(0.),vec2(1.))).rgb;}
+vec3 prv(vec2 p){return texture2D(uPrev,clamp(p/uRes,vec2(0.),vec2(1.))).rgb;}
+vec2 vel(vec2 p){vec2 c=uRes*.5,d=p-c;float sp=uA.x,m=uA.z;vec2 v;
+  if(m<.5)v=vec2(cos(uA.y),sin(uA.y))*sp;
+  else if(m<1.5)v=normalize(d+1e-3)*sp*(.3+length(d)/(uRes.y*.5));
+  else if(m<2.5)v=vec2(-d.y,d.x)/(length(d)+1.)*sp*(.3+length(d)/(uRes.y*.5));
+  else{float a=vn(p/(uC.y*uRes.y+1.)+uT*.15)*12.566;v=vec2(cos(a),sin(a))*sp;}
+  if(uC.x>0.){float a=vn(p/(uRes.y*.08)+uT*.7+7.)*12.566;v+=vec2(cos(a),sin(a))*sp*uC.x;}
+  return v*(1.+uD.x);}
+void main(){vec2 p=gl_FragCoord.xy;vec2 v=vel(p);
+  // carry the old picture along the flow, smeared over a few samples
+  vec3 a=vec3(0.);float n=1.+floor(uC.z*5.);
+  for(int i=0;i<6;i++){if(float(i)>=n)break;a+=prv(p-v*(1.+float(i)*.6));}a/=n;
+  a=max(a*uA.w-.004,0.);
+  // crumble the trail into particles
+  float g=max(1.,uB.y);vec2 cell=floor(p/g);float r=h2(cell+floor(uD.y));
+  if(uB.x>0.){a*=step(uB.x*.85,r);a*=.75+.5*h2(cell*1.7+uD.y);}
+  vec3 c=cur(p+(vec2(h2(cell+3.),h2(cell+5.))-.5)*uB.z*g*2.);float lc=lum(c);
+  // where the new picture lands: «светлое поверх» keeps the brighter, «новое поверх» lets the fresh image cover the trail
+  float k=1.;if(uC.w!=0.){float t=(1.-abs(uC.w))*1.3-.15;k=smoothstep(t-.15,t+.15,uC.w>0.?lc:1.-lc);}
+  vec3 o1=max(c,a),o2=mix(a,c,smoothstep(.03,.25,lc));
+  vec3 o=mix(o1,o2,uB.w);o=mix(a,o,k);
+  gl_FragColor=vec4(o,1.);}`;
 const U=(p,n)=>gl.getUniformLocation(p,n);
-const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD),PPX=prog(FPX),PSK=prog(FSK);
+const PA=prog(FA),PB=prog(FB),PC=prog(FC),PD=prog(FD),PPX=prog(FPX),PSK=prog(FSK),PTR=prog(FTR);
+const utr={cur:U(PTR,'uCur'),prev:U(PTR,'uPrev'),res:U(PTR,'uRes'),t:U(PTR,'uT'),A:U(PTR,'uA'),B:U(PTR,'uB'),C:U(PTR,'uC'),D:U(PTR,'uD')};
 const usk={tex:U(PSK,'uTex'),res:U(PSK,'uRes'),t:U(PSK,'uT'),A:U(PSK,'uA'),B:U(PSK,'uB'),C:U(PSK,'uC'),D:U(PSK,'uD'),E:U(PSK,'uE'),F:U(PSK,'uF')};
 const upx={tex:U(PPX,'uTex'),res:U(PPX,'uRes'),t:U(PPX,'uT'),A:U(PPX,'uA'),B:U(PPX,'uB'),C:U(PPX,'uC'),D:U(PPX,'uD'),E:U(PPX,'uE')};
 const ua={res:U(PA,'uRes'),u:U(PA,'uU'),look:U(PA,'uLook')};
@@ -514,7 +547,7 @@ gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
 
 function texParams(){gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);}
-let scene=null,fbs=[],fbx=null,W=0,H=0,pi=0,skipFr=2;
+let trb=[],trI=0,scene=null,fbs=[],fbx=null,W=0,H=0,pi=0,skipFr=2;
 function target(){const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);texParams();
   const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);
@@ -545,7 +578,7 @@ function resize(force){
   if(w===W&&h===H&&!force)return;
   W=w;H=h;canvas.width=W;canvas.height=H;
   [scene,...fbs].forEach(o=>{if(o){gl.deleteFramebuffer(o.f);gl.deleteTexture(o.tex);}});
-  scene=target();fbs=[target(),target(),target()];fbx=target();pi=0;dirty=10;skipFr=2;
+  scene=target();fbs=[target(),target(),target()];fbx=target();trb=[target(),target()];trI=0;pi=0;dirty=10;skipFr=2;
 }
 function upload(src,tex){gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
   try{gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);}catch(e){}
@@ -1218,7 +1251,11 @@ function frame(now){
     gl.drawArrays(gl.TRIANGLES,0,3);
     const x=ai;ai=ni;ni=x;});
   bind(SRC[ED].st);if(skipFr>0)skipFr--;
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fbs[ai].tex);
+  let srcTex=fbs[ai].tex;
+  if(typeof trOn==='function'&&trOn()){const dst=trb[trI],prv=trb[1-trI];gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.useProgram(PTR);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,prv.tex);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,srcTex);
+    trUniforms(t);gl.drawArrays(gl.TRIANGLES,0,3);trI=1-trI;srcTex=dst.tex;}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,srcTex);
   const fxP=typeof pxOn==='function'&&pxOn(),fxS=typeof skOn==='function'&&skOn();
   if(fxP&&fxS){gl.bindFramebuffer(gl.FRAMEBUFFER,fbx.f);gl.useProgram(PPX);pxUniforms(t);gl.drawArrays(gl.TRIANGLES,0,3);
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.bindTexture(gl.TEXTURE_2D,fbx.tex);gl.useProgram(PSK);skUniforms(t);}
@@ -1704,6 +1741,10 @@ const TIPS={
  clips:'Клиппинг · Насыщенность — как меняется цвет у каждой следующей копии.',
  gain:'Усиление — дополнительный прирост яркости на каждом шаге каскада.',
  'px:svol':'Громкость звука тока.','px:ssens':'Чувствительность: насколько сильно должен измениться участок кадра, чтобы прозвучал звучок. Больше — реагирует на мелкие изменения.','px:sdens':'Густота — сколько звучков рождает каждый изменившийся участок. Большая площадь изменений → россыпь, маленькая → пара щелчков.','px:spitch':'Высота — базовый тон всех звучков.','px:sspread':'Разброс — насколько верх кадра звучит выше низа. 0 — все звучки одной высоты.','px:slen':'Длина одного звучка: от щелчка до протяжного разряда.','px:swidth':'Стерео — участки слева звучат слева, справа — справа. 0 — всё по центру.','px:sgrit':'Треск — сколько искр (Ток), грязи (Цифра) или расстройки (Стекло).','px:sback':'Обратно — громкость звучков от светлеющих участков (нарастают и идут вверх). «нет» — только удары.','px:shum':'Гул — фоновое электрическое гудение, тем громче и ярче, чем больше освещённой площади.',
+ 'tr:dir':'Угол — куда тянется шлейф в режиме «Направление» (0° вверх, 90° вправо).','tr:speed':'Скорость — как быстро прошлые кадры уезжают по течению.','tr:turb':'Турбулентность — добавляет завихрения к любому течению.','tr:scale':'Масштаб — размер «струй» в режиме «Поток».',
+ 'tr:len':'Длина — как долго держится шлейф, прежде чем погаснет.','tr:smear':'Размытие — шлейф тянется гладкими полосами, а не отдельными копиями.','tr:fresh':'Новое поверх — 0: светлое всегда поверх (шлейф светится сквозь), 100: свежая картинка закрывает шлейф.',
+ 'tr:light':'Свет — где появляется свежая картинка: ☀ только светлые части оставляют шлейф, ☾ только тёмные.','tr:dust':'Рассыпание — шлейф распадается на частицы.','tr:grain':'Зерно — размер частиц.','tr:jit':'Разброс — частицы отрываются от своих мест.',
+ 'tr:flick':'Мерцание — частицы перемигиваются каждый кадр.','tr:beat':'По ритму — на каждую долю (или басу, если включён микрофон) шлейф делает рывок.',
  'sk:mix':'Сила — смесь скетча с обычной картинкой.','sk:light':'Где появляются метки: ☀ — на светлом (кожа, лицо), ☾ — на тёмном, «везде».','sk:lsoft':'Плавность границы зоны меток.','sk:fps':'Кадры — как часто метки и обводка «перерисовываются». Мало — рывками, как анимация от руки.',
  'sk:pale':'Бледность — светлые места становятся мертвенно-бледными.','sk:tint':'Тени — подкрашивает тёмные места цветом.','sk:thue':'Цвет теней (240° — синий).','sk:con':'Контраст.',
  'sk:patch':'Заплатки — прямоугольные куски пиксельной светлой мозаики на коже.','sk:psize':'Размер заплаток.','sk:ppix':'Крупность пикселей внутри заплаток.',
@@ -1744,6 +1785,7 @@ const tipFor=el=>{if(!el)return '';
     let m=rid.match(/^lamp2?_(\w+)$/);if(m)return TIPS['lamp:'+m[1]]||'';
     m=rid.match(/^px_(\w+)$/);if(m)return TIPS['px:'+m[1]]||'';
     m=rid.match(/^sk_(\w+)$/);if(m)return TIPS['sk:'+m[1]]||'';
+    m=rid.match(/^tr_(\w+)$/);if(m)return TIPS['tr:'+m[1]]||'';
     m=rid.match(/^au_(\w+)$/);if(m)return TIPS['au:'+m[1]]||'';
     m=rid.match(/^ca_(\w+)$/);if(m)return TIPS[(typeof TAB!=='undefined'?TAB:'ca')+':'+m[1]]||TIPS[m[1]]||'';
     return TIPS[rid]||'';}
@@ -1813,9 +1855,9 @@ function pxUniforms(t){const k=H/1080,bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if
     b.addEventListener('click',()=>{const D0={light:0,lsoft:30,mix:100,cell:6,adapt:70,ratio:35,gap:35,brick:100,glint:55,post:0,sat:20,lines:40,lhue:190,ldrift:30,wave:0,wfreq:6,wspd:40,smear:0,ring:0,beat:0};Object.entries(Object.assign(D0,STY[n])).forEach(([k,v])=>{const o=S['px_'+k];if(o){o.el.value=v;o.el.dispatchEvent(new Event('input',{bubbles:true}));}});if(!pxOn()){LST.v.px_on=1;lstSave();pxUI();}dirty=6;});pr.append(b);});
   $('panel').append(box);
   // effect windows line up left of the menu: Пиксели next to it, Скетч next to that
-  window.fxPlace=()=>{if(window.innerWidth<=700){['pxp','skp'].forEach(id=>{const w=$(id);if(w)w.style.left='';});return;}
+  window.fxPlace=()=>{if(window.innerWidth<=700){['pxp','skp','trp'].forEach(id=>{const w=$(id);if(w)w.style.left='';});return;}
     const pr=panelEl.getBoundingClientRect(),side=pr.left>200;let x=side?pr.left-12:12;
-    ['pxp','skp'].forEach(id=>{const w=$(id);if(!w||w.hidden)return;if(side){x-=w.offsetWidth;w.style.left=Math.max(12,x)+'px';x-=12;}else{w.style.left=x+'px';x+=w.offsetWidth+12;}});};
+    ['pxp','skp','trp'].forEach(id=>{const w=$(id);if(!w||w.hidden)return;if(side){x-=w.offsetWidth;w.style.left=Math.max(12,x)+'px';x-=12;}else{w.style.left=x+'px';x+=w.offsetWidth+12;}});};
   const pxPlace=()=>window.fxPlace();
   window.addEventListener('resize',pxPlace);
   const pxUI=()=>{pxPlace();const v=pxOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('pxbtn').setAttribute('aria-pressed',v||!box.hidden);$('pxbtn').classList.toggle('pxon',v);};
@@ -1988,6 +2030,60 @@ document.addEventListener('pointerdown',()=>{if(LST.v.px_son&&!LST.v.mute&&ZAP.c
 // after a test burst with the sound off, put the engine back to sleep
 setInterval(()=>{if(ZAP.ctx&&ZAP.ctx.state==='running'&&!(LST.v.px_son&&!LST.v.mute)&&performance.now()-(ZAP.tt||0)>2000){try{ZAP.hum.g.gain.setValueAtTime(0,ZAP.ctx.currentTime);ZAP.ctx.suspend();}catch(_){}}},1000);
 zapApply();
+
+// ---- «Шлейф» window
+const TRV=id=>S['tr_'+id]?+S['tr_'+id].el.value:0;
+function trOn(){return !!(LST.v.tr_on);}
+let trSeed=0,trKick=0,trBeat=-1;
+function trUniforms(t){const k=H/1080;trSeed=(trSeed+1)%997;
+  const bt=AU.on?AU.beat:Math.floor(t*bpm()/60);if(bt!==trBeat){trBeat=bt;if(TRV('beat')>0)trKick=Math.max(trKick,TRV('beat')/100*2.5);}
+  if(AU.on&&TRV('beat')>0)trKick=Math.max(trKick,(AU.lv[0]||0)*TRV('beat')/100*2);trKick*=.86;
+  gl.uniform1i(utr.cur,0);gl.uniform1i(utr.prev,1);gl.uniform2f(utr.res,W,H);gl.uniform1f(utr.t,t);
+  gl.uniform4f(utr.A,TRV('speed')*.25*k,(TRV('dir')-90)*-Math.PI/180,LST.v.tr_mode|0,.80+TRV('len')/100*.195);
+  gl.uniform4f(utr.B,TRV('dust')/100,TRV('grain')*k,TRV('jit')/100,TRV('fresh')/100);
+  gl.uniform4f(utr.C,TRV('turb')/100,.05+TRV('scale')/100*.6,TRV('smear')/100,TRV('light')/100);
+  gl.uniform4f(utr.D,trKick,trSeed*(TRV('flick')/100),0,0);}
+{const box=document.createElement('div');box.id='trp';box.hidden=true;box.setAttribute('role','dialog');box.setAttribute('aria-label','Шлейф');
+  const hd=document.createElement('div');hd.className='bar lamphd';const tt=document.createElement('span');tt.className='ptitle';tt.textContent='≋ Шлейф';
+  const on=document.createElement('button');on.type='button';on.id='tr_onb';on.textContent='Выкл';on.title='Включить / выключить эффект';
+  const clr=document.createElement('button');clr.type='button';clr.id='tr_clear';clr.textContent='Стереть';clr.title='Стереть накопленный шлейф';
+  const cl=document.createElement('button');cl.type='button';cl.id='tr_close';cl.textContent='✕';cl.title='Закрыть окно (эффект остаётся)';hd.append(tt,on,clr,cl);box.append(hd);
+  const pr=document.createElement('div');pr.className='lampm pxpre';const pl=document.createElement('span');pl.className='dim';pl.textContent='Стиль';pr.append(pl);box.append(pr);
+  const sec=t=>{const d=document.createElement('div');d.className='pxsec';const h=document.createElement('div');h.className='pxh';h.textContent=t;d.append(h);box.append(d);return d;};
+  const m=sec('Течение');const mr=document.createElement('div');mr.className='lampm';
+  const MODES=[['Направление','Шлейф тянется в одну сторону (угол ниже)'],['Взрыв','Разлетается от центра'],['Вихрь','Закручивается вокруг центра'],['Поток','Хаотичное течение, как дым']];
+  const mbs=MODES.map(([n,tt],i)=>{const b=document.createElement('button');b.type='button';b.id='tr_m'+i;b.textContent=n;b.title=tt;b.addEventListener('click',()=>{LST.v.tr_mode=i;lstSave();ui();});mr.append(b);return b;});m.append(mr);
+  lampSlider(m,'tr_dir',{n:'Угол',min:0,max:355,v:270,step:5,f:v=>v+'°'});
+  lampSlider(m,'tr_speed',{n:'Скорость',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(m,'tr_turb',{n:'Турбулентн.',min:0,max:100,v:20,step:5,f:fPct});
+  lampSlider(m,'tr_scale',{n:'Масштаб',min:0,max:100,v:40,step:5,f:fPct});
+  const a=sec('Шлейф');
+  lampSlider(a,'tr_len',{n:'Длина',min:0,max:100,v:75,step:5,f:fPct});
+  lampSlider(a,'tr_smear',{n:'Размытие',min:0,max:100,v:40,step:5,f:fPct});
+  lampSlider(a,'tr_fresh',{n:'Новое поверх',min:0,max:100,v:30,step:5,f:fPct});
+  lampSlider(a,'tr_light',{n:'Свет',min:-100,max:100,v:0,step:5,f:v=>v===0?'везде':v>0?'☀ '+v+'%':'☾ '+(-v)+'%'});
+  const d=sec('Частицы');
+  lampSlider(d,'tr_dust',{n:'Рассыпание',min:0,max:100,v:35,step:5,f:fPct});
+  lampSlider(d,'tr_grain',{n:'Зерно',min:1,max:12,v:2,step:1,f:v=>v+' px'});
+  lampSlider(d,'tr_jit',{n:'Разброс',min:0,max:100,v:20,step:5,f:fPct});
+  lampSlider(d,'tr_flick',{n:'Мерцание',min:0,max:100,v:60,step:5,f:fPct});
+  lampSlider(d,'tr_beat',{n:'По ритму',min:0,max:100,v:0,step:5,f:fPct});
+  const STY={'4D улица':{mode:3,speed:35,turb:30,scale:35,len:88,smear:60,fresh:35,dust:40,grain:2,jit:25,flick:70},
+    'Взрыв':{mode:1,speed:45,turb:10,len:82,smear:40,fresh:20,dust:45,grain:2,jit:10,flick:60},
+    'Вихрь':{mode:2,speed:40,turb:15,len:85,smear:50,fresh:25,dust:30,grain:2},
+    'Дождь вниз':{mode:0,dir:180,speed:40,turb:5,len:80,smear:30,fresh:40,dust:55,grain:3,flick:80},
+    'Дым':{mode:3,speed:20,turb:60,scale:60,len:92,smear:70,fresh:15,dust:15,grain:1}};
+  const D0={dir:270,speed:30,turb:20,scale:40,len:75,smear:40,fresh:30,light:0,dust:35,grain:2,jit:20,flick:60,beat:0};
+  Object.keys(STY).forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.id='tr_sty_'+i;b.textContent=n;b.title='Готовый стиль «'+n+'» — дальше крути бегунки';
+    b.addEventListener('click',()=>{const o=Object.assign({},D0,STY[n]);LST.v.tr_mode=o.mode|0;delete o.mode;Object.entries(o).forEach(([k,v])=>{const x=S['tr_'+k];if(x){x.el.value=v;x.el.dispatchEvent(new Event('input',{bubbles:true}));}});
+      if(!trOn()){LST.v.tr_on=1;}lstSave();ui();dirty=6;});pr.append(b);});
+  $('panel').append(box);
+  const clear=()=>{trb.forEach(b=>{gl.bindFramebuffer(gl.FRAMEBUFFER,b.f);gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);});gl.bindFramebuffer(gl.FRAMEBUFFER,null);dirty=4;};
+  const ui=()=>{window.fxPlace();const v=trOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('trbtn').setAttribute('aria-pressed',v||!box.hidden);$('trbtn').classList.toggle('pxon',v);
+    mbs.forEach((b,i)=>b.setAttribute('aria-pressed',(LST.v.tr_mode|0)===i));S.tr_dir.row.classList.toggle('loff',(LST.v.tr_mode|0)!==0);S.tr_scale.row.classList.toggle('loff',(LST.v.tr_mode|0)!==3);};
+  on.addEventListener('click',()=>{LST.v.tr_on=trOn()?0:1;lstSave();if(trOn())clear();ui();dirty=6;});clr.addEventListener('click',clear);
+  $('trbtn').addEventListener('click',()=>{if(GP.learn)return;box.hidden=!box.hidden;ui();});
+  cl.addEventListener('click',()=>{box.hidden=true;ui();});box.addEventListener('input',()=>{dirty=6;});ui();}
 requestAnimationFrame(frame);
 })();
 </script>
