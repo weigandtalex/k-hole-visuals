@@ -189,9 +189,10 @@ button:focus-visible,input:focus-visible,.file:focus-within{outline:1px solid va
 #trp .trinfo{font-size:12px;line-height:1.45;color:#c9d2e6;background:#ffffff0a;border:1px solid var(--line);border-radius:6px;padding:7px 9px}#trp .trring{display:flex;justify-content:center;padding:4px 0}#tr_ring{position:static;inset:auto;width:min(230px,100%);height:auto;aspect-ratio:1;touch-action:none;cursor:crosshair}#trp .lampm{flex-wrap:wrap}#trp .lampm button{flex:1 1 auto;min-width:max-content}
 .cat .fxin{position:static!important;width:auto!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;border:0!important;padding:0!important;background:none!important}
 .fxin .lamphd .ptitle,#px_close,#sk_close,#tr_close{display:none!important}.fxin .lamphd{justify-content:flex-end}
-.cat.fxon>.cath::after{content:' ●';color:var(--cr)}
-.cath{display:flex;align-items:center;gap:6px;width:fit-content;max-width:55%;min-height:40px;margin:8px 0;padding:8px 14px 8px 10px;border:1px solid #ffffff38;border-radius:6px;background:#ffffff12;touch-action:manipulation}
-.cath:hover{border-color:var(--haze)}.cat:not(.fold)>.cath{border-color:var(--ice);background:#ffffff14}
+.cat.fxon>.catrow>.cath::after{content:' ●';color:var(--cr)}#pxp.fxin>.lamphd,#skp.fxin>.lamphd{display:none!important}.catrow{display:flex;align-items:center;gap:8px}.catrow .catsw{flex:0 0 auto;min-width:64px;padding:8px 10px}#pxbtn,#trbtn,#skbtn{display:none!important}
+.cat.fold>.catrow>.cath::before{content:'▸ '}.cat:not(.fold)>.catrow>.cath{border-color:var(--ice);background:#ffffff14}
+.cat .cath{display:flex;align-items:center;gap:6px;width:fit-content;max-width:55%;min-height:40px;margin:8px 0;padding:8px 14px 8px 10px;border:1px solid #ffffff38;border-radius:6px;background:#ffffff12;touch-action:manipulation}
+.cat .cath:hover{border-color:var(--haze)}.cat:not(.fold)>.cath{border-color:var(--ice);background:#ffffff14}
 .pxh.foldh,.cgt.foldh{width:fit-content;max-width:55%;min-height:32px;display:flex;align-items:center;padding:5px 12px 5px 8px;margin:2px 0;border:1px solid #ffffff2a;border-radius:5px;background:#ffffff0c;touch-action:manipulation}
 .pxsec:not(.fold)>.pxh.foldh,.cgrp:not(.fold)>.cgt.foldh{border-color:var(--haze)}
 #outsh{position:fixed;inset:0;z-index:60;background:#000a;display:flex;align-items:flex-end;justify-content:center}#outsh[hidden]{display:none}
@@ -338,7 +339,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.43</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.44</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -2335,9 +2336,8 @@ function setLang(l){LANG=l;try{localStorage.setItem('kh_lang',l);}catch(_){}docu
   // Пиксели / Скетч / Шлейф live inside the panel as their own fold-out categories (no floating windows)
   {const fx=catOf('rack');const W=[['pxp','▦ Пиксели','pxbtn','px'],['skp','✎ Скетч','skbtn','sk'],['trp','≋ Шлейф','trbtn','tr']];let at=fx;
     W.forEach(([id,t,bid,k])=>{const box=$(id);if(!box)return;box.hidden=false;box.classList.add('fxin');at.after(box);mkCat(t,[box],k);const c=catOf(id);at=c;
-      const ob=$(bid),nb=ob.cloneNode(true);ob.replaceWith(nb);
-      nb.addEventListener('click',()=>{if(GP.learn)return;const op=c.classList.contains('fold');c.classList.toggle('fold',!op);c.querySelector('.cath').setAttribute('aria-expanded',op);
-        if(op)setTimeout(()=>c.scrollIntoView({block:'start',behavior:'smooth'}),30);});});
+      $(bid).hidden=true;const hh=c.querySelector('.cath'),row=document.createElement('div');row.className='catrow';hh.before(row);row.append(hh);
+      const sw=$(k+'_onb');if(sw){sw.classList.add('catsw');row.append(sw);}});
     window.fxPlace=()=>{};
     const sync=()=>W.forEach(([id,,bid])=>{const c=catOf(id),b=$(bid);if(c&&c.querySelector&&b){const on=b.classList.contains('pxon');c.classList.toggle('fxon',on);b.setAttribute('aria-pressed',on);}});
     setInterval(sync,400);sync();}
