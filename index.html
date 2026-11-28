@@ -355,7 +355,7 @@ body.allh-on .slots .cs{outline:2px solid var(--cr);outline-offset:1px}
         <span class="rs2"><button id="resetall" type="button">All Reset</button><button id="reset" type="button">Reset</button></span>
       </div>
     </div>
-      <div id="verrow" class="verrow"><span id="ver">версия 1.46</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
+      <div id="verrow" class="verrow"><span id="ver">версия 1.47</span><button id="upd" type="button" title="Проверить, есть ли новая версия, и загрузить её">⟳ Обновить</button></div>
       <div id="updbar" hidden><span id="updtxt"></span><button id="updgo" type="button">Загрузить</button><button id="updx" type="button" aria-label="Позже">✕</button></div>
   </div>
 </div>
@@ -2240,7 +2240,7 @@ function trUniforms(t){const k=H/1080;trSeed=(trSeed+1)%997;
   lampSlider(m,'tr_turb',{n:'Турбулентн.',min:0,max:100,v:20,step:5,f:fPct});
   lampSlider(m,'tr_scale',{n:'Масштаб',min:0,max:100,v:40,step:5,f:fPct});
   // exposure mode: time in seconds, the kind of trail, and what is allowed to leave one
-  const exS=sec('Время следа');const xr=document.createElement('div');xr.className='lampm';
+  const exS=sec('Время следа');exS.querySelector('.pxh').remove();exS.classList.add('trmain');const xr=document.createElement('div');xr.className='lampm';
   const XT=[[0,'Светлый след','Светлое остаётся поверх, как фары или фризлайт на ночной выдержке'],[1,'Тёмный след','Тёмное остаётся поверх: тёмные силуэты тянут чёрный шлейф по светлому'],[2,'Смешанный','Кадры усредняются, как настоящая долгая выдержка: движение становится полупрозрачным']];
   const xbs=XT.map(([i,n,tt])=>{const b=document.createElement('button');b.type='button';b.id='tr_xt'+i;b.textContent=n;b.title=tt;b.addEventListener('click',()=>{LST.v.tr_xt=i;lstSave();ui();dirty=6;});xr.append(b);return b;});exS.append(xr);
   lampSlider(exS,'tr_hold',{n:'Держится',min:0,max:100,v:10,step:1,f:v=>fMs(trHoldS(v))});
@@ -2303,11 +2303,7 @@ function trUniforms(t){const k=H/1080;trSeed=(trSeed+1)%997;
   lampSlider(d,'tr_jit',{n:'Разброс',min:0,max:100,v:20,step:5,f:fPct});
   lampSlider(d,'tr_flick',{n:'Мерцание',min:0,max:100,v:60,step:5,f:fPct});
   lampSlider(d,'tr_beat',{n:'По ритму',min:0,max:100,v:0,step:5,f:fPct});
-  const STY={'Долгая выдержка':{mode:4,xt:2,hold:0,fade:30},'Световые следы':{mode:4,xt:0,hold:10,fade:30,llo:55},'Тёмные следы':{mode:4,xt:1,hold:10,fade:25,lhi:35},'Цветной след':{mode:4,xt:0,hold:5,fade:30,hm:1},'4D улица':{mode:3,speed:35,turb:30,scale:35,len:88,smear:60,fresh:35,dust:40,grain:2,jit:25,flick:70},
-    'Взрыв':{mode:1,speed:45,turb:10,len:82,smear:40,fresh:20,dust:45,grain:2,jit:10,flick:60},
-    'Вихрь':{mode:2,speed:40,turb:15,len:85,smear:50,fresh:25,dust:30,grain:2},
-    'Дождь вниз':{mode:0,dir:180,speed:40,turb:5,len:80,smear:30,fresh:40,dust:55,grain:3,flick:80},
-    'Дым':{mode:3,speed:20,turb:60,scale:60,len:92,smear:70,fresh:15,dust:15,grain:1}};
+  const STY={'Долгая выдержка':{mode:4,xt:2,hold:0,fade:30},'Световые следы':{mode:4,xt:0,hold:10,fade:30,llo:55},'Тёмные следы':{mode:4,xt:1,hold:10,fade:25,lhi:35},'Цветной след':{mode:4,xt:0,hold:5,fade:30,hm:1}};
   const D0={dir:270,speed:30,turb:20,scale:40,len:75,smear:40,fresh:30,light:0,dust:35,grain:2,jit:20,flick:60,beat:0,hold:10,fade:25,str:100,llo:0,lhi:100,lsoft:30};
   Object.keys(STY).forEach((n,i)=>{const b=document.createElement('button');b.type='button';b.id='tr_sty_'+i;b.textContent=n;b.title='Готовый стиль «'+n+'» — дальше крути бегунки';
     b.addEventListener('click',()=>{const o=Object.assign({},D0,STY[n]);LST.v.tr_mode=o.mode|0;LST.v.tr_xt=o.xt|0;LST.v.tr_hmode=o.hm|0;delete o.mode;delete o.xt;delete o.hm;Object.entries(o).forEach(([k,v])=>{const x=S['tr_'+k];if(x){x.el.value=v;x.el.dispatchEvent(new Event('input',{bubbles:true}));}});
@@ -2315,9 +2311,9 @@ function trUniforms(t){const k=H/1080;trSeed=(trSeed+1)%997;
   $('panel').append(box);
   const clear=()=>{trb.forEach(b=>{gl.bindFramebuffer(gl.FRAMEBUFFER,b.f);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);});gl.clearColor(0,0,0,1);gl.bindFramebuffer(gl.FRAMEBUFFER,null);dirty=4;};
   const ui=()=>{window.fxPlace();const v=trOn();on.setAttribute('aria-pressed',v);on.textContent=v?'Вкл':'Выкл';$('trbtn').setAttribute('aria-pressed',v||!box.hidden);$('trbtn').classList.toggle('pxon',v);
-    const md=LST.v.tr_mode|0,ex=md===4;mbs.forEach((b,k)=>b.setAttribute('aria-pressed',MODES[k][0]===md));S.tr_dir.row.classList.toggle('loff',md!==0);S.tr_scale.row.classList.toggle('loff',md!==3);
+    LST.v.tr_mode=4;const md=4,ex=true;[m,a,d].forEach(x=>{x.style.display='none';});mbs.forEach((b,k)=>b.setAttribute('aria-pressed',MODES[k][0]===md));S.tr_dir.row.classList.toggle('loff',md!==0);S.tr_scale.row.classList.toggle('loff',md!==3);
     ['speed','turb'].forEach(k=>{S['tr_'+k].row.hidden=ex;});if(ex){S.tr_dir.row.hidden=S.tr_scale.row.hidden=true;}else{S.tr_dir.row.hidden=S.tr_scale.row.hidden=false;}
-    [a,d].forEach(x=>{x.style.display=ex?'none':'';});[exS,fl].forEach(x=>{x.style.display=ex?'':'none';});
+    [exS,fl].forEach(x=>{x.style.display='';});
     const xt=LST.v.tr_xt|0,hm=LST.v.tr_hmode|0;xbs.forEach((b,k)=>b.setAttribute('aria-pressed',k===xt));hbs.forEach((b,k)=>b.setAttribute('aria-pressed',k===hm));
     ['hue','hw','hf','hsat'].forEach(k=>S['tr_'+k].row.classList.toggle('loff',!hm));S.tr_hold.row.classList.toggle('loff',xt===2);
     const lo=TRV('llo'),hi=TRV('lhi');['tr_lq0','tr_lq1','tr_lq2'].forEach((id,i)=>$(id).setAttribute('aria-pressed',[[0,100],[60,100],[0,35]][i][0]===lo&&[[0,100],[60,100],[0,35]][i][1]===hi));
